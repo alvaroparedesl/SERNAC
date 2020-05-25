@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Procesar reclamos</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for computar_reclamos {SERNAC}"><tr><td>computar_reclamos {SERNAC}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Procesar reclamos</h2>
+
+<h3>Description</h3>
+
+<p>Procesar reclamos
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+computar_reclamos(
+  mdatai,
+  byCategoria = c("cierre_corto", "proveedor_mercado_nombre",
+    "proveedor_mercado_categoria_nombre", "proveedor_rut", "cut_region"),
+  byClase = c(industria = "proveedor_mercado_categoria_nombre", proveedor =
+    "proveedor_rut", producto = "mercado_tipo_producto_nombre"),
+  lags = 1:6,
+  cuantiles = c(0, 0.25, 0.5, 0.75, 1),
+  IQR = c(0.25, 0.75),
+  coef = 1.5,
+  n_min = 50,
+  rango_fechas = c(NULL, NULL)
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>mdatai</code></td>
+<td>
+<p>data.frame con la base de datos.</p>
+</td></tr>
+<tr valign="top"><td><code>byCategoria</code></td>
+<td>
+<p>vector de strings con las variables consideradas como categorías.</p>
+</td></tr>
+<tr valign="top"><td><code>byClase</code></td>
+<td>
+<p>vector de strings con nombres ('<a href="../../stats/html/setNames.html">setNames</a>'), que incluya las variables de clase (categorización). El orden es importante.</p>
+</td></tr>
+<tr valign="top"><td><code>lags</code></td>
+<td>
+<p>vector númerico</p>
+</td></tr>
+<tr valign="top"><td><code>cuantiles</code></td>
+<td>
+<p>vector númerico con los cuantiles deseados (valor entre 0 y 1).</p>
+</td></tr>
+<tr valign="top"><td><code>IQR</code></td>
+<td>
+<p>vector con el rango intercuantil de la forma c(min, max). Ambos valores deben estar en 'cuantiles'.</p>
+</td></tr>
+<tr valign="top"><td><code>coef</code></td>
+<td>
+<p>coeficiente de dispersión (de castigo), usualmente 1.5.</p>
+</td></tr>
+<tr valign="top"><td><code>n_min</code></td>
+<td>
+<p>número mínimo de observaciones</p>
+</td></tr>
+<tr valign="top"><td><code>rango_fechas</code></td>
+<td>
+<p>vector de la forma 'c(min, max)' que incluye las fechas inferior y superior a considerar. Puede ser en formato fecha o
+como string en formato YYYY-mm-dd.</p>
+</td></tr>
+</table>
+
+<hr /><div style="text-align: center;">[Package <em>SERNAC</em> version 0.1.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

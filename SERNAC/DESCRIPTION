@@ -1,0 +1,16 @@
+Package: SERNAC
+Type: Package
+Title: Funciones utilitarias para datos de reclamos del SERNAC.
+Version: 0.1.0
+Date: 2020-05-25
+Author: Álvaro Paredes Lizama
+Maintainer: Álvaro Paredes Lizama <aaparede@uc.cl>
+Description: Conjunto de funciones y utilidades para analizar datos de reclamos de SERNAC. 
+  Permite analizar los reclamos de manera agregada para determinar sectores con un número inusual de reclamos.
+License: GPL-3 | file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 3.1.0)
+VignetteBuilder: knitr
+RoxygenNote: 7.1.0
+Built: R 4.0.0; ; 2020-05-25 22:30:40 UTC; windows

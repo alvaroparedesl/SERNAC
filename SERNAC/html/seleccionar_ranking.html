@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Seleccionar por ranking</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for seleccionar_ranking {SERNAC}"><tr><td>seleccionar_ranking {SERNAC}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Seleccionar por ranking</h2>
+
+<h3>Description</h3>
+
+<p>Seleccionar por ranking
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+seleccionar_ranking(
+  reclamos,
+  byCategoria = byCategoria,
+  topn,
+  nmin,
+  reporte = TRUE,
+  ...
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>reclamos</code></td>
+<td>
+<p>base de datos de reclamos</p>
+</td></tr>
+<tr valign="top"><td><code>byCategoria</code></td>
+<td>
+<p>vector de strings con las variables consideradas como categorías.</p>
+</td></tr>
+<tr valign="top"><td><code>topn</code></td>
+<td>
+<p>número de posiciones del ranking a incluir. Se pueden retornar más o menos valores,
+dependiendo de si existen empates o el número final de registros.</p>
+</td></tr>
+<tr valign="top"><td><code>nmin</code></td>
+<td>
+<p>número mínimo de datos requeridos para estar presente en la selección.</p>
+</td></tr>
+<tr valign="top"><td><code>reporte</code></td>
+<td>
+<p>si es TRUE, imprime un reporte resumen.</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>argumentos extras pasados a <a href="rankear.html">rankear</a>.</p>
+</td></tr>
+</table>
+
+
+<h3>Examples</h3>
+
+<pre>
+1+1
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SERNAC</em> version 0.1.0 <a href="00Index.html">Index</a>]</div>
+</body></html>
