@@ -8,7 +8,7 @@
 #' @param bycols columnas que agruparán
 #' @param timep tiempo para hacer la agrupación; mensual o semanal
 #' @param prep entrega una tabla lista para ser apilada con otras, sin perder información.
-#'             Sólo si \code(setdiff(bycols, prepIgnore)) tiene largo igual a 1.
+#' Sólo si `setdiff(bycols, prepIgnore)` tiene largo igual a 1.
 #' @param prepIgnore columna de agrupación que ignorar al preparar los datos
 #' @param fillN cambia NAs por 0 (sólo en N, no en diff).
 #'

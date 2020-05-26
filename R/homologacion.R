@@ -191,7 +191,7 @@ homologar_db <- function(db,
 #' @title Homologa el árbol de mercados
 #'
 #' @description Permite realizar homologaciones y rellenar valores faltantes en las categorías de daño y facilidad de prueba
-#' @param arbol_motivo_legal
+#' @param arbol_motivo_legal data.frame de data.table con la información
 #'
 #' @return
 #' @export
@@ -239,7 +239,7 @@ homologar_arbol <- function(arbol_motivo_legal) {
 #' @title Homologa datos del SII
 #'
 #' @description Permite homologar nombres de comunas y revisar algunas incosistencias
-#' @param siiData
+#' @param siiData data.frame de data.table con la información
 #'
 #' @return
 #' @export

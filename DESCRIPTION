@@ -10,7 +10,12 @@ Description: Conjunto de funciones y utilidades para analizar datos de reclamos 
 License: GPL-3 | file LICENSE
 Encoding: UTF-8
 LazyData: true
-Depends: R (>= 3.1.0)
+Depends: R (>= 3.5.0)
 VignetteBuilder: knitr
 RoxygenNote: 7.1.0
 Roxygen: list(markdown = TRUE)
+Dependes: 
+  data.table
+Imports: 
+  data.table,
+  knitr

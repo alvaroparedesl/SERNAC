@@ -7,7 +7,7 @@
 homologar_arbol(arbol_motivo_legal)
 }
 \arguments{
-\item{arbol_motivo_legal}{}
+\item{arbol_motivo_legal}{data.frame de data.table con la información}
 }
 \value{
 

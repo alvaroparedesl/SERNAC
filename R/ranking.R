@@ -116,6 +116,7 @@ get_maj <- function(db, cols, bycol) {
 #'
 #' @return
 #' @export
+#' @importFrom data.table frank
 #'
 #' @examples norm_rank(1:10)
 norm_rank <- function(x) {

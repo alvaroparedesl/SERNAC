@@ -7,7 +7,7 @@
 homologar_sii(siiData)
 }
 \arguments{
-\item{siiData}{}
+\item{siiData}{data.frame de data.table con la información}
 }
 \value{
 
