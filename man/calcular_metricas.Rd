@@ -15,9 +15,6 @@ calcular_metricas(x, cuantiles, IQR, coef)
 
 \item{coef}{coeficiente de dispersión (de castigo), usualmente 1.5.}
 }
-\value{
-
-}
 \description{
 Calcular métricas
 }

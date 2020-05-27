@@ -7,7 +7,7 @@
 #' @param clase nombre de la clase que se desa visualziar. Debe corresponder al nombre asignado a `byClase` en \link{computar_reclamos}.
 #' @param metrics métricas a visualizar. Si no se pasa argumento, se usarán todas.
 #'
-#' @return
+#' @importFrom graphics par
 #' @export
 #'
 #' @examples 1+1

@@ -26,9 +26,6 @@ plotme(
 
 \item{metrics}{métricas a visualizar. Si no se pasa argumento, se usarán todas.}
 }
-\value{
-
-}
 \description{
 Gráfico de la serie
 }

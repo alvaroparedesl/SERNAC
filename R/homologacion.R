@@ -12,6 +12,9 @@
 #' @param verbose si TRUE, imprime estados de avance.
 #' @param full_output si TRUE, entrega todas las tablas usadas. Si FALSE, entrega solo la tabla principal modificada.
 #'
+#' @importFrom readxl read_excel
+#' @importFrom data.table data.table
+#' @importFrom utils tail
 #' @return
 #' @export
 #'

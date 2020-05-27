@@ -5,7 +5,7 @@
 #' @param IQR vector con el rango intercuantil de la forma c(min, max). Ambos valores deben estar en `cuantiles`.
 #' @param coef coeficiente de dispersión (de castigo), usualmente 1.5.
 #'
-#' @return
+#' @importFrom stats quantile sd na.omit setNames formula
 #' @export
 #'
 calcular_metricas <- function(x, cuantiles, IQR, coef) {
@@ -103,7 +103,6 @@ reportar <- function(x) {
 #' @param db objeto dataframe de data.table.
 #' @param cols columnas donde mirar.
 #'
-#' @return
 #' @export
 #'
 buscar_ruts <- function(ruts, db, cols=c("proveedor_rut", "proveedor_nombre_fantasia", "proveedor_mercado_nombre")) {

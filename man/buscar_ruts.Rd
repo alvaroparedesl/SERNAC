@@ -17,9 +17,6 @@ buscar_ruts(
 
 \item{cols}{columnas donde mirar.}
 }
-\value{
-
-}
 \description{
 Búsqueda por rut
 }

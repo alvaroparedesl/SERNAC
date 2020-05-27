@@ -1,6 +1,6 @@
 Package: SERNAC
 Type: Package
-Title: Funciones utilitarias para datos de reclamos del SERNAC.
+Title: Funciones utilitarias para datos de reclamos del SERNAC
 Version: 0.1.0
 Date: 2020-05-25
 Author: Álvaro Paredes Lizama
@@ -18,4 +18,5 @@ Dependes:
   data.table
 Imports: 
   data.table,
+  readxl,
   knitr
