@@ -13,9 +13,6 @@ rankear(dt, col, t_observado = "max")
 
 \item{t_observado}{tiempo en el cual se evalua el ranking.}
 }
-\value{
-
-}
 \description{
 Generar ranking
 }

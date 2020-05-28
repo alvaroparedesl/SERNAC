@@ -9,7 +9,7 @@
 #'     como string en formato YYYY-mm-dd.
 #' @inheritParams calcular_metricas
 #'
-#' @return
+#' @importFrom data.table rbindlist melt dcast
 #' @export
 #'
 computar_reclamos <- function(mdatai,
@@ -99,6 +99,8 @@ computar_reclamos <- function(mdatai,
   })
   names(ans2) <- names(byClase)
   ans2 <- c(list(base=ans$base), ans2)
+  ans2$Clases <- byClase
+  class(ans2) <- c(class(ans2), "reclamos")
 
   end_time <- Sys.time()
   cat(end_time - start_time, "\n")

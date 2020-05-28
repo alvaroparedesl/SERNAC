@@ -38,9 +38,6 @@ computar_reclamos(
 \item{rango_fechas}{vector de la forma \code{c(min, max)} que incluye las fechas inferior y superior a considerar. Puede ser en formato fecha o
 como string en formato YYYY-mm-dd.}
 }
-\value{
-
-}
 \description{
 Procesar reclamos
 }

@@ -4,19 +4,10 @@
 \alias{seleccionar_ranking}
 \title{Seleccionar por ranking}
 \usage{
-seleccionar_ranking(
-  reclamos,
-  byCategoria = byCategoria,
-  topn,
-  nmin,
-  reporte = TRUE,
-  ...
-)
+seleccionar_ranking(reclamos, topn, nmin, reporte = TRUE, ...)
 }
 \arguments{
 \item{reclamos}{base de datos de reclamos}
-
-\item{byCategoria}{vector de strings con las variables consideradas como categorías.}
 
 \item{topn}{número de posiciones del ranking a incluir. Se pueden retornar más o menos valores,
 dependiendo de si existen empates o el número final de registros.}
@@ -26,9 +17,6 @@ dependiendo de si existen empates o el número final de registros.}
 \item{reporte}{si es TRUE, imprime un reporte resumen.}
 
 \item{...}{argumentos extras pasados a \link{rankear}.}
-}
-\value{
-
 }
 \description{
 Seleccionar por ranking

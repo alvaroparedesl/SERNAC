@@ -6,24 +6,24 @@
 #' @param nmin número mínimo de datos requeridos para estar presente en la selección.
 #' @param reporte si es TRUE, imprime un reporte resumen.
 #' @param ... argumentos extras pasados a \link{rankear}.
-#' @inheritParams computar_reclamos
 #'
-#' @return
+#' @importFrom data.table setnames dcast setorder
 #' @export
 #'
 #' @examples 1+1
-seleccionar_ranking <- function(reclamos, byCategoria=byCategoria, topn, nmin, reporte=TRUE, ...) {
-  out_ranks <- lapply(1:length(byCategoria), function(i) {
-    ys <- byCategoria[1:i]
-    y <- reclamos[[names(byCategoria)[i]]]$datos[outlier_i==T | outlier_e==T]
+seleccionar_ranking <- function(reclamos, topn, nmin, reporte=TRUE, ...) {
+  clases <- reclamos$Clases
+  out_ranks <- lapply(1:length(clases), function(i) {
+    ys <- clases[1:i]
+    y <- reclamos[[names(clases)[i]]]$datos[outlier_i==T | outlier_e==T]
     ans <- rankear(y, ys, ...)
   })
-  names(out_ranks) <- names(byCategorias)
+  names(out_ranks) <- names(clases)
 
   condicion1 <- paste0("N.y > ", nmin)
-  seleccion <- lapply(1:length(byCategoria), function(i) {
-    x <- names(byCategorias)[i]
-    ys <- c(byCategorias[1:i], "variable_valor", "variable", "t")
+  seleccion <- lapply(1:length(clases), function(i) {
+    x <- names(clases)[i]
+    ys <- c(clases[1:i], "variable_valor", "variable", "t")
     y1 <- out_ranks[[x]]
 
     # mrank <- y[, list(N=.N), by=c("up", "metric_cat", "outlier_ir")][order(outlier_ir)]
@@ -42,7 +42,7 @@ seleccionar_ranking <- function(reclamos, byCategoria=byCategoria, topn, nmin, r
     fin <- y4[y4[N.y > nmin, .I[1:topn], c("up", "t")]$V1][!is.na(N.y)]
     fin[, posicion:=1:.N, by=c("up", "t")]
   })
-  names(seleccion) <- names(byCategoria)
+  names(seleccion) <- names(clases)
   if (reporte){
     report <- lapply(seleccion, function(x) {
       xt <- x[, list(N=.N), by=c("up", "t", "metric_cat")]
@@ -61,7 +61,7 @@ seleccionar_ranking <- function(reclamos, byCategoria=byCategoria, topn, nmin, r
 #' @param col nombre de la columna a evaluar.
 #' @param t_observado tiempo en el cual se evalua el ranking.
 #'
-#' @return
+#' @importFrom data.table frankv
 #' @export
 #'
 #' @examples 1+1

@@ -13,7 +13,7 @@
 #' @param full_output si TRUE, entrega todas las tablas usadas. Si FALSE, entrega solo la tabla principal modificada.
 #'
 #' @importFrom readxl read_excel
-#' @importFrom data.table data.table
+#' @importFrom data.table data.table setnames
 #' @importFrom utils tail
 #' @return
 #' @export
@@ -30,7 +30,7 @@ homologar_db <- function(db,
   if (is.null(db)) {
     #--- cargar de base de datos
   } else {
-    if (verbose) cat("Leyendo db\n")
+    if (verbose) cat("Leyendo base de datos\n")
     if (is.character(db)){
       dt <- data.table(read_excel(db))
     } else {

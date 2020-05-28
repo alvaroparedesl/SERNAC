@@ -12,8 +12,8 @@
 #' @param prepIgnore columna de agrupación que ignorar al preparar los datos
 #' @param fillN cambia NAs por 0 (sólo en N, no en diff).
 #'
+#' @importFrom data.table setnames setcolorder
 #' @return un data.frame de data.table ordenado por tiempo, para llegar y aplicar una serie temporal (filtrando previamente).
-#' @export
 #'
 #' @examples 1+1
 agg_by <- function(df, bycols=c("proveedor_rut", "proveedor_mercado_nombre"),

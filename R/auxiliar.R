@@ -6,12 +6,13 @@
 #' @param coef coeficiente de dispersión (de castigo), usualmente 1.5.
 #'
 #' @importFrom stats quantile sd na.omit setNames formula
+#' @importFrom data.table rbindlist setnames melt
 #' @export
 #'
 calcular_metricas <- function(x, cuantiles, IQR, coef) {
   # calcular_metricas <- function(x, cuantiles=c(0, .25, .5, .75, 1), IQR=c(.25, .75), coef=1.5) {
   # de la función boxplot.stats: sin asumir normalidad, usando cuantiles 8 como es recomendado.
-  if (!cuantiles %in% IQR) stop("Los valores de IQR deben estar contenidos en la variable cuantiles.")
+  if (!all(IQR %in% cuantiles)) stop("Los valores de IQR deben estar contenidos en la variable cuantiles.")
   qs <- quantile(x, cuantiles, type=8, na.rm=T)
   ans <- c(qs, sd=sd(x, na.rm=T), mean=mean(x, na.rm=T), N=sum(!is.na(x)))
   qtls <- ans[which(cuantiles %in% IQR)]
