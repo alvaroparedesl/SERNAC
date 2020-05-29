@@ -15,7 +15,8 @@ computar_reclamos(
   IQR = c(0.25, 0.75),
   coef = 1.5,
   n_min = 50,
-  rango_fechas = c(NULL, NULL)
+  rango_fechas = c(NULL, NULL),
+  verbose = TRUE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ computar_reclamos(
 
 \item{rango_fechas}{vector de la forma \code{c(min, max)} que incluye las fechas inferior y superior a considerar. Puede ser en formato fecha o
 como string en formato YYYY-mm-dd.}
+
+\item{verbose}{si es TRUE, devuelve mensajes sobre el avance del proceso, de lo contrario, no entrega ningún mensaje. Por defecto es TRUE.}
 }
 \description{
 Procesar reclamos

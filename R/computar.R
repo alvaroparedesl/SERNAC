@@ -7,9 +7,10 @@
 #' @param n_min número mínimo de observaciones
 #' @param rango_fechas vector de la forma `c(min, max)` que incluye las fechas inferior y superior a considerar. Puede ser en formato fecha o
 #'     como string en formato YYYY-mm-dd.
+#' @param verbose si es TRUE, devuelve mensajes sobre el avance del proceso, de lo contrario, no entrega ningún mensaje. Por defecto es TRUE.
 #' @inheritParams calcular_metricas
 #'
-#' @importFrom data.table rbindlist melt dcast
+#' @importFrom data.table rbindlist melt dcast set
 #' @export
 #'
 computar_reclamos <- function(mdatai,
@@ -22,23 +23,27 @@ computar_reclamos <- function(mdatai,
                              IQR=c(.25, .75),
                              coef=1.5,
                              n_min=50,
-                             rango_fechas=c(NULL, NULL)) {
-  start_time <- Sys.time()
+                             rango_fechas=c(NULL, NULL),
+                             verbose=TRUE) {
+  tiempos <- Sys.time()
 
   #------ 0:
   mdatai <- data.table(mdatai)
-  rutNombreN <- mdatai[, list(N=.N), by="proveedor_rut"]
-  mdata <- mdatai[proveedor_rut %in% rutNombreN[N > n_min]$proveedor_rut]
-  cat(paste0(nrow(mdatai) - nrow(mdata), " registros con menos de 50 observaciones a lo largo del periodo total fueron descartados.\n"))
 
+  # filtros de fecha
   if (!is.na(rango_fechas[1])){
-    mdata <- mdata[caso_creacion_fecha >= as.POSIXct(rango_fechas[1])]
+    mdatai <- mdatai[caso_creacion_fecha >= as.POSIXct(rango_fechas[1])]
   }
   if (!is.na(rango_fechas[2])){
-    mdata <- mdata[caso_creacion_fecha <= as.POSIXct(rango_fechas[2])]
+    mdatai <- mdatai[caso_creacion_fecha <= as.POSIXct(rango_fechas[2])]
   }
 
+  rutNombreN <- mdatai[, list(N=.N), by="proveedor_rut"]
+  mdata <- mdatai[proveedor_rut %in% rutNombreN[N > n_min]$proveedor_rut]  # TODO: agregar esto y el número de observaciones a un objeto reporte.
+  if (verbose) cat("Se descartaron ", paste0(nrow(mdatai) - nrow(mdata), " registros con menos de 50 observaciones por proveedor a lo largo del periodo total.\n"))
+
   #------ 1:
+  if (verbose) cat("Agregando datos... ")
   metricsN <- c(paste0("q", sprintf("%03d", cuantiles*100)), "sd", "mean", "N", "lower_threshold", "upper_threshold")
   exprs1 <- sprintf("`:=`(%s)", paste0("d", lags, "N=c(rep(NA,", lags, "), diff(N, ", lags, "))", collapse=", "))
 
@@ -52,16 +57,19 @@ computar_reclamos <- function(mdatai,
   })
   # names(aggs) <- names(byClase)
   new <- c(list(base=bases), aggs)
-
+  tiempos <- c(tiempos, Sys.time()); if (verbose) cat(difftime(tiempos[length(tiempos)], tiempos[length(tiempos) - 1], units="secs"), "segundos.\n")
+  #--------------------------------------------------------------------------------------------------------------------------------------------------
   #----- 2:
-  ans <- lapply(new, function(dt, cuantiles, IQR, coef) {
+  if (verbose) cat("Calculando métricas... ")
+  ans <- lapply(new, function(x, cuantiles, IQR, coef) {
     #---- Definir variables
-    svar <- intersect(names(dt), byClase)
+    svar <- intersect(names(x), byClase)
     svarP <- c(svar, "variable_valor", "variable")
 
     #---- Ejecutar
-    dt[, eval(parse(text=exprs1)), by=svarP]
-    aggsM <- melt(dt, id.vars=c(svarP, "t"), variable.name="metrics", value.name="values")  # formato ancho a largo
+    x[, eval(parse(text=exprs1)), by=svarP]
+    for (j in setdiff(names(x), c(svarP, "t"))) set(x, j = j, value = as.double(x[[j]])) # transformar todo a double, para evitar problemas en melt [are not all of the same type, coerced]
+    aggsM <- melt(x, id.vars=c(svarP, "t"), variable.name="metrics", value.name="values")  # formato ancho a largo
     aggsM[, c("values_norm", "p") := norm_rank(values), by=svarP]
     # setkey(aggsM, proveedor_rut, variable, variable_valor, metrics)
     #----- ESTA vuelta con exp_1 y exp_2 es porque los argumentos directos no son reconocidos (problemas de scope)
@@ -87,6 +95,10 @@ computar_reclamos <- function(mdatai,
     return(list(datos=merged, limites=limites))
   }, cuantiles=cuantiles, IQR=IQR, coef=coef)
 
+  tiempos <- c(tiempos, Sys.time()); if (verbose) cat(difftime(tiempos[length(tiempos)], tiempos[length(tiempos) - 1], units="secs"), "segundos.\n")
+  #--------------------------------------------------------------------------------------------------------------------------------------------------
+  #------ 3
+  if (verbose) cat("Convirtiendo datos... ")
   limit <- dcast(ans$base$limites[metric %in% c("lower_threshold", "upper_threshold")],
                  variable_valor + variable + metrics ~ metric, value.var="values_norm")
 
@@ -102,8 +114,9 @@ computar_reclamos <- function(mdatai,
   ans2$Clases <- byClase
   class(ans2) <- c(class(ans2), "reclamos")
 
-  end_time <- Sys.time()
-  cat(end_time - start_time, "\n")
+  tiempos <- c(tiempos, Sys.time()); if (verbose) cat(difftime(tiempos[length(tiempos)], tiempos[length(tiempos) - 1], units="secs"), "segundos.\n")
+
+  if (verbose) cat("Cálculos realizados en ", difftime(tiempos[length(tiempos)], tiempos[1], units="secs"), "segundos.\n")
 
   return(ans2)
 }
