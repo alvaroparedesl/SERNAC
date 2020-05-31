@@ -10,7 +10,8 @@ agg_by(
   timep = "mensual",
   prep = FALSE,
   prepIgnore = NULL,
-  fillN = TRUE
+  fillN = TRUE,
+  usar_tiempo = TRUE
 )
 }
 \arguments{
@@ -26,6 +27,8 @@ Sólo si \code{setdiff(bycols, prepIgnore)} tiene largo igual a 1.}
 \item{prepIgnore}{columna de agrupación que ignorar al preparar los datos}
 
 \item{fillN}{cambia NAs por 0 (sólo en N, no en diff).}
+
+\item{usar_tiempo}{si es TRUE, se usa la diferencia de tiempo como una de las variables para buscar valores atípicos. Por defecto es TRUE.}
 }
 \value{
 un data.frame de data.table ordenado por tiempo, para llegar y aplicar una serie temporal (filtrando previamente).

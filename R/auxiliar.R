@@ -9,8 +9,8 @@
 #' @importFrom data.table rbindlist setnames melt
 #' @export
 #'
-calcular_metricas <- function(x, cuantiles, IQR, coef) {
-  # calcular_metricas <- function(x, cuantiles=c(0, .25, .5, .75, 1), IQR=c(.25, .75), coef=1.5) {
+calcular_limites <- function(x, cuantiles, IQR, coef) {
+  # calcular_limites <- function(x, cuantiles=c(0, .25, .5, .75, 1), IQR=c(.25, .75), coef=1.5) {
   # de la función boxplot.stats: sin asumir normalidad, usando cuantiles 8 como es recomendado.
   if (!all(IQR %in% cuantiles)) stop("Los valores de IQR deben estar contenidos en la variable cuantiles.")
   qs <- quantile(x, cuantiles, type=8, na.rm=T)
@@ -112,4 +112,17 @@ buscar_ruts <- function(ruts, db, cols=c("proveedor_rut", "proveedor_nombre_fant
   tp <- unique(db[eval(parse(text=exp1)), ..cols])
   setorder(tp, proveedor_rut)
   return(tp)
+}
+
+
+#' @title Print method para la clase reclamos
+#'
+#' @param x objeto de la clae `reclamos`
+#'
+#' @export
+print.reclamos <- function(x, ...){
+  cat("Las clases definidas son:\n")
+  print(x$Clases)
+  cat("Con las siguientes categorías:ºn")
+  cat(x$Categorias)
 }

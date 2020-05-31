@@ -11,13 +11,14 @@
 #' Sólo si `setdiff(bycols, prepIgnore)` tiene largo igual a 1.
 #' @param prepIgnore columna de agrupación que ignorar al preparar los datos
 #' @param fillN cambia NAs por 0 (sólo en N, no en diff).
+#' @param usar_tiempo si es TRUE, se usa la diferencia de tiempo como una de las variables para buscar valores atípicos. Por defecto es TRUE.
 #'
 #' @importFrom data.table setnames setcolorder
 #' @return un data.frame de data.table ordenado por tiempo, para llegar y aplicar una serie temporal (filtrando previamente).
 #'
 #' @examples 1+1
 agg_by <- function(df, bycols=c("proveedor_rut", "proveedor_mercado_nombre"),
-                   timep="mensual", prep=FALSE, prepIgnore=NULL, fillN=TRUE) {
+                   timep="mensual", prep=FALSE, prepIgnore=NULL, fillN=TRUE, usar_tiempo=TRUE) {
   if (nrow(df) < 1){
     stop("Datos vacíos??")
   }
@@ -25,20 +26,29 @@ agg_by <- function(df, bycols=c("proveedor_rut", "proveedor_mercado_nombre"),
                 mensual=c("%Y-%m", "-15", "%Y-%m-%d"))[[timep]]
   tiempo <- list(mensual="months", semanal="weeks")
   df[, t:=strftime(caso_creacion_fecha, tType[1])]
-  df[, temp:=as.numeric(difftime(caso_cierre_fecha, caso_creacion_fecha, units="days"))] # TODO: definir estas columnas fuera
-  tesub <- df[,
-              list(# tmin=min(temp, na.rm=T),
-                # tmax=max(temp, na.rm=T),
-                tmean=mean(temp, na.rm=T),
-                # tmedian=median(temp, na.rm=T),
-                tsd=sd(temp, na.rm=T),
-                N=.N,
-                prop_acogidos = sum(reclamo_acogido, na.rm=T)/sum(!is.na(reclamo_acogido))
-                # log10N=log10(.N)
-              ),
-              by=c("t", bycols)]
+  if (usar_tiempo) {
+    df[, temp:=as.numeric(difftime(caso_cierre_fecha, caso_creacion_fecha, units="days"))] # TODO: definir estas columnas fuera
+    tesub <- df[,
+                list(# tmin=min(temp, na.rm=T),
+                  # tmax=max(temp, na.rm=T),
+                  tmean=mean(temp, na.rm=T),
+                  # tmedian=median(temp, na.rm=T),
+                  tsd=sd(temp, na.rm=T),
+                  N=.N,
+                  prop_acogidos = sum(reclamo_acogido, na.rm=T)/sum(!is.na(reclamo_acogido))
+                  # log10N=log10(.N)
+                ),
+                by=c("t", bycols)]
 
-  df[, c("t", "temp"):=NULL]
+    df[, c("t", "temp"):=NULL]
+  } else {
+    df[, temp:=as.numeric(difftime(caso_cierre_fecha, caso_creacion_fecha, units="days"))] # TODO: definir estas columnas fuera
+    tesub <- df[,list(N=.N, prop_acogidos = sum(reclamo_acogido, na.rm=T)/sum(!is.na(reclamo_acogido))),
+                by=c("t", bycols)]
+
+    df[, c("t"):=NULL]
+  }
+
   tesub[, t:=as.Date(paste0(t, tType[2]), tType[3])]
   #--------- rellenando fechas faltantes:
   minmax <- range(tesub$t, na.rm=T)

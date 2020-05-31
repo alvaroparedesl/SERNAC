@@ -16,7 +16,8 @@ computar_reclamos(
   coef = 1.5,
   n_min = 50,
   rango_fechas = c(NULL, NULL),
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ computar_reclamos(
 como string en formato YYYY-mm-dd.}
 
 \item{verbose}{si es TRUE, devuelve mensajes sobre el avance del proceso, de lo contrario, no entrega ningún mensaje. Por defecto es TRUE.}
+
+\item{...}{argumentos extras pasados a \link{agg_by}, como \code{usar_tiempo}.}
 }
 \description{
 Procesar reclamos
