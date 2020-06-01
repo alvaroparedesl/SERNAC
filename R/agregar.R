@@ -1,3 +1,4 @@
+#' @encoding UTF-8
 #' @title Agregar/resumir por variable(s)
 #'
 #' @description Agrupa reclamos por fecha, de forma mensual o semanal. Retorno los tiempos de respuesta entre reclamos, y el número de reclamos
@@ -17,14 +18,15 @@
 #' @return un data.frame de data.table ordenado por tiempo, para llegar y aplicar una serie temporal (filtrando previamente).
 #'
 #' @examples 1+1
-agg_by <- function(df, bycols=c("proveedor_rut", "proveedor_mercado_nombre"),
+agregar_datos <- function(df, bycols=c("proveedor_rut", "proveedor_mercado_nombre"),
                    timep="mensual", prep=FALSE, prepIgnore=NULL, fillN=TRUE, usar_tiempo=TRUE) {
   if (nrow(df) < 1){
     stop("Datos vacíos??")
   }
   tType <- list(semanal=c("%Y-%U", "-4", "%Y-%U-%u"),
-                mensual=c("%Y-%m", "-15", "%Y-%m-%d"))[[timep]]
-  tiempo <- list(mensual="months", semanal="weeks")
+                mensual=c("%Y-%m", "-15", "%Y-%m-%d"),
+                semestral=c("", "", ""))[[timep]]
+  tiempo <- list(mensual="months", semanal="weeks", semestral="semester")
   df[, t:=strftime(caso_creacion_fecha, tType[1])]
   if (usar_tiempo) {
     df[, temp:=as.numeric(difftime(caso_cierre_fecha, caso_creacion_fecha, units="days"))] # TODO: definir estas columnas fuera

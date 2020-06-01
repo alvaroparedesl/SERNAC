@@ -1,6 +1,7 @@
+#' @encoding UTF-8
 #' @title Seleccionar por ranking
 #'
-#' @param reclamos base de datos de reclamos
+#' @param dat objeto de la clase `reclamos`.
 #' @param topn número de posiciones del ranking a incluir. Se pueden retornar más o menos valores,
 #' dependiendo de si existen empates o el número final de registros.
 #' @param nmin número mínimo de datos requeridos para estar presente en la selección.
@@ -11,11 +12,15 @@
 #' @export
 #'
 #' @examples 1+1
-seleccionar_ranking <- function(reclamos, topn, nmin, reporte=TRUE, ...) {
-  clases <- reclamos$Clases
+seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, ...) {
+  if (!"reclamos" %in% class(dat)) stop("Objeto dat debe ser de la clarse reclamos")
+
+  selec <- dat[['reclamos']]
+  clases <- dat$Clases
+
   out_ranks <- lapply(1:length(clases), function(i) {
     ys <- clases[1:i]
-    y <- reclamos[[names(clases)[i]]]$datos[outlier_i==T | outlier_e==T]
+    y <- selec[[names(clases)[i]]]$datos[outlier_i==T | outlier_e==T]
     ans <- rankear(y, ys, ...)
   })
   names(out_ranks) <- names(clases)
@@ -30,11 +35,11 @@ seleccionar_ranking <- function(reclamos, topn, nmin, reporte=TRUE, ...) {
     # tope <- mrank[which(cumsum(mrank$N) >= topn)[1], outlier_ir]
     # y1 <- y[outlier_ir <= tope]
     # comparar contra:
-    y2 <- merge(y1, reclamos[[x]]$datos, by=ys, all.x=T, order=F)
+    y2 <- merge(y1, selec[[x]]$datos, by=ys, all.x=T, order=F)
     exp1 <- formula(paste0(paste0(ys, collapse=" + "), "+ outlier_i.x + outlier_e.x + outlier_ir + outlier_r + up + metric_cat ~ metrics"))
     exp2 <- formula(paste0(paste0(ys, collapse=" + "), " ~ metrics"))
     y3 <- dcast(y2[outlier_i.y==T], exp1, value.var="p")
-    mn <- dcast(reclamos[[x]]$datos[metrics=="N"], exp2, value.var="values")
+    mn <- dcast(selec[[x]]$datos[metrics=="N"], exp2, value.var="values")
     y4 <- merge(y3, mn, by=ys, all.x=T, order=F)
     setorder(y4, outlier_ir, outlier_r, -N.y)
     setnames(y4, "N.x", "N")
@@ -43,18 +48,27 @@ seleccionar_ranking <- function(reclamos, topn, nmin, reporte=TRUE, ...) {
     fin[, posicion:=1:.N, by=c("up", "t")]
   })
   names(seleccion) <- names(clases)
+  # seleccion2 <- list(reclamos=dat, seleccion=seleccion, reporte=NULL, atributos=list(topn=topn, nmin=nmin))
+  dat$ranking <- list(seleccion=seleccion)
+  dat$ranking$reporte <- NULL
+  dat$atributos$ranking <- list(topn=topn, nmin=nmin)
+  dat$estado$ranking <- TRUE
+
   if (reporte){
-    report <- lapply(seleccion, function(x) {
+    report <- lapply(dat$ranking$seleccion, function(x) {
       xt <- x[, list(N=.N), by=c("up", "t", "metric_cat")]
       setorder(xt, t, up)
       xt
     })
     print(report)
+    dat$ranking$reporte <- reporte
   }
-  return(seleccion)
+
+  class(dat) <- "reclamos"
+  return(dat)
 }
 
-
+#' @encoding UTF-8
 #' @title Generar ranking
 #'
 #' @param dt data.table.
@@ -92,6 +106,7 @@ rankear <- function(dt, col, t_observado='max') {
 
 
 ####--------------------------------------------------------------------------
+#' @encoding UTF-8
 #' @title Obtener registro con mayoría
 #'
 #' @param db data.table dataframe
@@ -102,14 +117,14 @@ rankear <- function(dt, col, t_observado='max') {
 #' @export
 #'
 #' @examples 1+1
-get_maj <- function(db, cols, bycol) {
+obtener_mayoria <- function(db, cols, bycol) {
   colsd <- setdiff(cols, bycol)
   tabN <- db[, list(N=.N), by=cols]
   tabMaj <- tabN[, eval(parse(text=paste0("list(", bycol, " = ", bycol, "[which.max(N)])"))), by=colsd, ]
   return(tabMaj)
 }
 
-
+#' @encoding UTF-8
 #' @title Ranking normalizado
 #'
 #' @param x un vector

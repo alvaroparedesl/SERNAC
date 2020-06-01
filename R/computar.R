@@ -1,3 +1,4 @@
+#' @encoding UTF-8
 #' @title Procesar reclamos
 #'
 #' @param mdatai data.frame con la base de datos.
@@ -8,7 +9,7 @@
 #' @param rango_fechas vector de la forma `c(min, max)` que incluye las fechas inferior y superior a considerar. Puede ser en formato fecha o
 #'     como string en formato YYYY-mm-dd.
 #' @param verbose si es TRUE, devuelve mensajes sobre el avance del proceso, de lo contrario, no entrega ningún mensaje. Por defecto es TRUE.
-#' @param ... argumentos extras pasados a \link{agg_by}, como `usar_tiempo`.
+#' @param ... argumentos extras pasados a \link{agregar_datos}, como `usar_tiempo`.
 #' @inheritParams calcular_limites
 #'
 #' @importFrom data.table rbindlist dcast
@@ -46,12 +47,12 @@ computar_reclamos <- function(mdatai,
 
   #------ 1:
   if (verbose) cat("Agregando datos... ")
-  bases <- rbindlist(lapply(byCategoria, function(x) agg_by(mdata, bycols=x, prep=T, ...)))
+  bases <- rbindlist(lapply(byCategoria, function(x) agregar_datos(mdata, bycols=x, prep=T, ...)))
 
   aggs <- lapply(1:length(byClase), function(i) {
     ys <- byClase[1:i]
     rbindlist(lapply(byCategoria[-which(byCategoria %in% ys)],
-                     function(x) agg_by(mdata, bycols=c(ys, x), prep=T,
+                     function(x) agregar_datos(mdata, bycols=c(ys, x), prep=T,
                                         prepIgnore=c(ys), ...)))
   })
   # names(aggs) <- names(byClase)
@@ -74,7 +75,7 @@ computar_reclamos <- function(mdatai,
   ans2 <- lapply(2:length(ans), function(i) {
     gt <- ans[[i]]
     temp <- merge(gt$datos, limit, by=c("variable_valor", "variable", "metrics"), all.x=T, sort=F)
-    temp[, outlier_e:=get_outliers(values_norm, lower_threshold, upper_threshold)]
+    temp[, outlier_e:=obtener_outliers(values_norm, lower_threshold, upper_threshold)]
     temp[, c("lower_threshold", "upper_threshold"):=NULL]
     return(list(datos=temp, limites=gt$limites))
   })
@@ -83,22 +84,24 @@ computar_reclamos <- function(mdatai,
   tiempos <- c(tiempos, Sys.time()); if (verbose) cat(difftime(tiempos[length(tiempos)], tiempos[length(tiempos) - 1], units="secs"), "segundos.\n")
   if (verbose) cat("Cálculos realizados en ", difftime(tiempos[length(tiempos)], tiempos[1], units="secs"), "segundos.\n")
 
-  ans2 <- c(list(base=ans$base), ans2)
+  ans2 <- list(reclamos=c(list(base=ans$base), ans2))
   ans2$Clases <- byClase
   ans2$Categorias <- byCategoria
-  ans2$atributos <- list(lags=lags,
-                         cuantiles=cuantiles,
-                         IQR=IQR,
-                         coef=coef,
-                         n_min=n_min,
-                         rango_fechas=rango_fechas,
-                         runtimes=tiempos)
+  ans2$estado <- list(reclamos=TRUE, ranking=FALSE, series=FALSE, reporte=FALSE)
+  ans2$atributos <- list(computar_reclamos= list(lags=lags,
+                                                 cuantiles=cuantiles,
+                                                 IQR=IQR,
+                                                 coef=coef,
+                                                 n_min=n_min,
+                                                 rango_fechas=rango_fechas,
+                                                 runtimes=tiempos))
 
   class(ans2) <- "reclamos"
   return(ans2)
 }
 
 
+#' @encoding UTF-8
 #' @title Genera metricas internas
 #'
 #' @description Subfuncón sin ninguna utilidad fuera del entorno interno, para estrucutrar de mejor manera los cálculos.
@@ -139,7 +142,7 @@ generar_metricas <- function(x, cuantiles, IQR, coef, byClase, exprs1, metricsN)
   form1 <- paste0(c(svarP, "metrics ~ metric"), collapse= " + ")
   mtable <- dcast(limites[metric %in% c("lower_threshold", "upper_threshold")], form1, value.var="values")
   merged <- merge(aggsM, mtable, by=c(svarP, "metrics"), all.x=T, sort=F)
-  merged[, outlier_i:=get_outliers(values, lower_threshold, upper_threshold)]
+  merged[, outlier_i:=obtener_outliers(values, lower_threshold, upper_threshold)]
   merged[, c("lower_threshold", "upper_threshold"):=NULL]
   return(list(datos=merged, limites=limites))
 }

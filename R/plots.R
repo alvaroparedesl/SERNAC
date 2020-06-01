@@ -1,6 +1,7 @@
+#' @encoding UTF-8
 #' @title Gráfico de la serie
 #'
-#' @param db objeto retornado por \link{computar_reclamos}.
+#' @param dat objeto retornado por \link{computar_reclamos}.
 #' @param t_observado periodo observado
 #' @param pos posición del ranking a observar
 #' @param ascendente se muestren de menor a mayor?
@@ -11,7 +12,10 @@
 #' @export
 #'
 #' @examples 1+1
-plotme <- function(db, t_observado='min', pos=1, ascendente=TRUE, clase="industria", metrics=NULL){
+plot.reclamos <- function(dat, t_observado='min', pos=1, ascendente=TRUE, clase="industria", metrics=NULL, ...){
+  db <- dat$reporte
+  if (!"reclamos" %in% class(dat)) stop("Objeto db debe ser de la clase reclamos")
+  if (!dat$estado$reporte) stop("Primero debe extraer la serie con reportar")
 
   clasei <- clase
   mdat <- db$serie[posicion==pos & up==ascendente & clase==clasei]

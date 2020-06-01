@@ -1,3 +1,4 @@
+#' @encoding UTF-8
 #' @title Calcular métricas
 #'
 #' @param x vector númerico.
@@ -17,10 +18,11 @@ calcular_limites <- function(x, cuantiles, IQR, coef) {
   ans <- c(qs, sd=sd(x, na.rm=T), mean=mean(x, na.rm=T), N=sum(!is.na(x)))
   qtls <- ans[which(cuantiles %in% IQR)]
   iqr <- diff(qtls)
-  c(ans, qtls + c(-1, 1) * coef * iqr)
+  return(c(ans, qtls + c(-1, 1) * coef * iqr))
 }
 
 
+#' @encoding UTF-8
 #' @title Marca outliers
 #'
 #' @param x vector númerico
@@ -31,7 +33,7 @@ calcular_limites <- function(x, cuantiles, IQR, coef) {
 #' @return
 #' @export
 #'
-get_outliers <- function(x, t_min, t_max, to_data_table=TRUE) {
+obtener_outliers <- function(x, t_min, t_max, to_data_table=TRUE) {
   out <- x < t_min | x > t_max
   if (to_data_table) {
     return(out)
@@ -42,15 +44,19 @@ get_outliers <- function(x, t_min, t_max, to_data_table=TRUE) {
 }
 
 
+#' @encoding UTF-8
 #' @title EXtrae las series
 #'
-#' @param x no lo sé
-#' @param y no lo sé
+#' @param reclamos objeto de la clase `reclamos_seleccion`.
 #'
 #' @return
 #' @export
 #'
-extraer_series <- function(x, y) {
+extraer_series <- function(obj) {
+  if (!"reclamos" %in% class(obj)) stop("Objeto debe ser de la clase reclamos")
+
+  x <- obj$reclamos
+  y <- obj$ranking$seleccion
   nxy <- names(y)
 
   ans <- lapply(nxy, function(i) {
@@ -72,18 +78,24 @@ extraer_series <- function(x, y) {
   })
   names(ans) <- nxy
   # xy[up==T & t_observado=="2019-11-15" & posicion == 1 & metrics=="d1N"]
-  return(ans)
+  obj$series <- ans
+  obj$estado$series <- TRUE
+  return(obj)
 }
 
 
+#' @encoding UTF-8
 #' @title Reportar
 #'
-#' @param x objeto de salida de la función principal.
+#' @param dat objeto de salida de la función principal.
 #'
 #' @return
 #' @export
 #'
-reportar <- function(x) {
+reportar <- function(dat) {
+  if (!"reclamos" %in% class(dat)) stop("Objeto debe ser de la clase reclamos")
+
+  x <- dat$series
   mit <- lapply(rev(names(x)), function(y) {
     y1 <- x[[y]]
     y1$clase <- y
@@ -94,10 +106,15 @@ reportar <- function(x) {
   ids <- names(todo)[1:(which(names(todo) == "variable"))]
   tops_metric <- unique(todo[, c(ids, "t_observado", "clase", "up", "posicion", "metrics", "N.y"), with=F])
   tops <- tops_metric[, list(metrics=paste0(metrics, collapse=", ")), by=c(ids, "t_observado", "clase", "up", "posicion", "N.y")]
-  return(list(tops=tops, tops_metrics=tops_metric, serie=todo, ids=ids))
+
+  dat$reporte <- list(tops=tops, tops_metrics=tops_metric, serie=todo, ids=ids)
+  dat$estado$reporte <- TRUE
+  class(dat) <- "reclamos"
+  return(dat)
 }
 
 
+#' @encoding UTF-8
 #' @title Búsqueda por rut
 #'
 #' @param ruts vector con los ruts a verificar.
@@ -115,6 +132,7 @@ buscar_ruts <- function(ruts, db, cols=c("proveedor_rut", "proveedor_nombre_fant
 }
 
 
+#' @encoding UTF-8
 #' @title Print method para la clase reclamos
 #'
 #' @param x objeto de la clae `reclamos`
@@ -123,6 +141,6 @@ buscar_ruts <- function(ruts, db, cols=c("proveedor_rut", "proveedor_nombre_fant
 print.reclamos <- function(x, ...){
   cat("Las clases definidas son:\n")
   print(x$Clases)
-  cat("Con las siguientes categorías:ºn")
+  cat("Con las siguientes categorías:\n"  )
   cat(x$Categorias)
 }

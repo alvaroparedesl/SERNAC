@@ -1,3 +1,4 @@
+#' @encoding UTF-8
 #' @title Homologa datos de entrada al formato apropiado
 #'
 #' @description Permite homologar nombres de columnas, comunas, motivos legales; también selecciona columnas de interés,
@@ -85,9 +86,9 @@ homologar_db <- function(db,
   }
 
   #--- Nombres por rut de mayoría
-  rutNombreMaj <- get_maj(dt2, c("proveedor_rut", "proveedor_nombre_fantasia"), "proveedor_nombre_fantasia")
-  rutMercadoMaj <- get_maj(dt2, c("proveedor_rut", "proveedor_mercado_nombre"), "proveedor_mercado_nombre")
-  rutMercadoCatMaj <- get_maj(dt2, c("proveedor_rut", "proveedor_mercado_categoria_nombre"), "proveedor_mercado_categoria_nombre")
+  rutNombreMaj <- obtener_mayoria(dt2, c("proveedor_rut", "proveedor_nombre_fantasia"), "proveedor_nombre_fantasia")
+  rutMercadoMaj <- obtener_mayoria(dt2, c("proveedor_rut", "proveedor_mercado_nombre"), "proveedor_mercado_nombre")
+  rutMercadoCatMaj <- obtener_mayoria(dt2, c("proveedor_rut", "proveedor_mercado_categoria_nombre"), "proveedor_mercado_categoria_nombre")
 
   dt2[, c("proveedor_nombre_fantasia", "proveedor_mercado_nombre", "proveedor_mercado_categoria_nombre") := NULL]
   dt3 <- merge(merge(merge(dt2, rutNombreMaj, sort=F), rutMercadoMaj, sort=F), rutMercadoCatMaj, sort=F)
@@ -190,7 +191,7 @@ homologar_db <- function(db,
   }
 }
 
-
+#' @encoding UTF-8
 #' @title Homologa el árbol de mercados
 #'
 #' @description Permite realizar homologaciones y rellenar valores faltantes en las categorías de daño y facilidad de prueba
@@ -238,7 +239,7 @@ homologar_arbol <- function(arbol_motivo_legal) {
   return(list(arbol=arbol, arbol_completo=arbol_out))
 }
 
-
+#' @encoding UTF-8
 #' @title Homologa datos del SII
 #'
 #' @description Permite homologar nombres de comunas y revisar algunas incosistencias
