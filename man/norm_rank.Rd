@@ -10,9 +10,6 @@ norm_rank(x)
 \arguments{
 \item{x}{un vector}
 }
-\value{
-
-}
 \description{
 Ranking normalizado
 }

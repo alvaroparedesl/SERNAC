@@ -47,7 +47,7 @@ obtener_outliers <- function(x, t_min, t_max, to_data_table=TRUE) {
 #' @encoding UTF-8
 #' @title EXtrae las series
 #'
-#' @param reclamos objeto de la clase `reclamos_seleccion`.
+#' @param obj objeto de la clase `reclamos_seleccion`.
 #'
 #' @return
 #' @export
@@ -143,7 +143,7 @@ buscar_ruts <- function(ruts, db, cols=c("proveedor_rut", "proveedor_nombre_fant
 #' @param donde ruta de salida. Si ninguna es específicada se usará el directorio actual de trabajo.
 #' @param ... parámetros adicionales para \link[data.table]{fwrite}, como separador de columnas, marcador de decimales, verbose, etc.
 #'
-#' @param details Por completar, con la descripción de las columnas de cada output.
+#' @details Por completar, con la descripción de las columnas de cada output.
 #'
 #' @importFrom data.table fwrite
 #' @export
@@ -174,7 +174,8 @@ exportar <- function(obj, que='ranking', donde=NULL, ...) {
 #' @encoding UTF-8
 #' @title Print method para la clase reclamos
 #'
-#' @param x objeto de la clae `reclamos`
+#' @param x objeto de la clae `reclamos`.
+#' @param ... parámetros adicionales para ,\link{print}.
 #'
 #' @export
 print.reclamos <- function(x, ...){

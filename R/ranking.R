@@ -101,6 +101,7 @@ rankear <- function(dt, col, t_observado='max') {
                                                              frankv(-c(outlier_i + outlier_e), na.last="keep")),
           by=c("metric_cat", "up", "t")]
   setorder(my_outs, outlier_r)
+  browser()
   return(my_outs)
 }
 
@@ -129,11 +130,31 @@ obtener_mayoria <- function(db, cols, bycol) {
 #'
 #' @param x un vector
 #'
-#' @return
 #' @export
 #' @importFrom data.table frank
 #'
 #' @examples norm_rank(1:10)
 norm_rank <- function(x) {
   list(scale(x, center=T, scale=T)[, 1], (frank(x, na.last="keep")/sum(!is.na(x))) )
+}
+
+
+#' @encoding UTF-8
+#' @title Visualizar rankings
+#'
+#' @inheritParams plot.reclamos
+#' @export
+#'
+ver_ranking <- function(x, t_observado=NA, pos=1, ascendente=NA, clase="industria"){
+  if (!"reclamos" %in% class(x)) stop("Objeto x debe ser de la clarse reclamos")
+  tp <- x$reporte$tops
+  vs <- setNames(c(t_observado, pos, ascendente, clase), c("t_observado", "posicion", "up", "clase"))
+  ans <- lapply(1:length(vs), function(y) {
+    if (!is.na(vs[y])) {
+      return(paste0(names(vs)[y], " %in% c('", paste(vs[y], collapse="', '"), "')"))
+    }
+  })
+  expr1 <- do.call("paste", list(Filter(Negate(is.null), ans), collapse=" & "))
+
+  print(tp[eval(parse(text=expr1))])
 }

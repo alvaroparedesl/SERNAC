@@ -8,7 +8,7 @@
 extraer_series(obj)
 }
 \arguments{
-\item{reclamos}{objeto de la clase \code{reclamos_seleccion}.}
+\item{obj}{objeto de la clase \code{reclamos_seleccion}.}
 }
 \value{
 

@@ -15,9 +15,10 @@ exportar(obj, que = "ranking", donde = NULL, ...)
 \item{donde}{ruta de salida. Si ninguna es específicada se usará el directorio actual de trabajo.}
 
 \item{...}{parámetros adicionales para \link[data.table]{fwrite}, como separador de columnas, marcador de decimales, verbose, etc.}
-
-\item{details}{Por completar, con la descripción de las columnas de cada output.}
 }
 \description{
 Exportar diferentes elementos de la clase reclamos a csv.
+}
+\details{
+Por completar, con la descripción de las columnas de cada output.
 }

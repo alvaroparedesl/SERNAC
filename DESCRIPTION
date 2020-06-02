@@ -1,7 +1,7 @@
 Package: SERNAC
 Type: Package
 Title: Funciones utilitarias para datos de reclamos del SERNAC
-Version: 0.1.0
+Version: 0.2.0
 Date: 2020-05-25
 Author: Álvaro Paredes Lizama
 Maintainer: Álvaro Paredes Lizama <aaparede@uc.cl>

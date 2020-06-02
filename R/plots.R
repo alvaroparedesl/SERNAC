@@ -1,21 +1,22 @@
 #' @encoding UTF-8
 #' @title Gráfico de la serie
 #'
-#' @param dat objeto retornado por \link{computar_reclamos}.
+#' @param x objeto retornado por \link{computar_reclamos}.
 #' @param t_observado periodo observado
 #' @param pos posición del ranking a observar
 #' @param ascendente se muestren de menor a mayor?
 #' @param clase nombre de la clase que se desa visualziar. Debe corresponder al nombre asignado a `byClase` en \link{computar_reclamos}.
 #' @param metrics métricas a visualizar. Si no se pasa argumento, se usarán todas.
+#' @param ... adicionales para \link{plot}.
 #'
 #' @importFrom graphics par
 #' @export
 #'
 #' @examples 1+1
-plot.reclamos <- function(dat, t_observado='min', pos=1, ascendente=NULL, clase="industria", metrics=NULL, ...){
-  db <- dat$reporte
-  if (!"reclamos" %in% class(dat)) stop("Objeto db debe ser de la clase reclamos")
-  if (!dat$estado$reporte) stop("Primero debe extraer la serie con reportar")
+plot.reclamos <- function(x, t_observado='min', pos=1, ascendente=NULL, clase="industria", metrics=NULL, ...){
+  db <- x$reporte
+  if (!"reclamos" %in% class(x)) stop("Objeto db debe ser de la clase reclamos")
+  if (!x$estado$reporte) stop("Primero debe extraer la serie con reportar")
 
   clasei <- clase
   if (is.null(ascendente)) {
@@ -60,7 +61,7 @@ plot.reclamos <- function(dat, t_observado='min', pos=1, ascendente=NULL, clase=
           par(mar = c(2, 4.1, 2, 2)); xlabt = ""
           if (cter %in% c(prow, n2plot)) {par(mar = c(5, 4.1, 2, 2)); xlabt <- "Tiempo"}
           last_line_time <- c(nrow(temp2)-1, nrow(temp2))
-          with(temp2, plot(values~t, type="l", ylab="Valor", xlab=xlabt, las=1, lwd=2, bty="l", col="#878787"))
+          with(temp2, plot(values~t, type="l", ylab="Valor", xlab=xlabt, las=1, lwd=2, bty="l", col="#878787", ...))
           with(temp2[last_line_time, ], lines(values~t, col=ifelse(up, "#d73027", "#4575b4"), lwd=3))
           mtext(paste(metricsi[i], unique(temp2$variable), unique(temp2$variable_valor), sep=" | "), side=3, line=-1, las=1, cex=.8)
           abline(with(temp2, lm(values~t)), col="#006837", lty=3, lwd=2)

@@ -8,7 +8,9 @@
 \method{print}{reclamos}(x, ...)
 }
 \arguments{
-\item{x}{objeto de la clae \code{reclamos}}
+\item{x}{objeto de la clae \code{reclamos}.}
+
+\item{...}{parámetros adicionales para ,\link{print}.}
 }
 \description{
 Print method para la clase reclamos
