@@ -119,18 +119,57 @@ reportar <- function(dat) {
 #'
 #' @param ruts vector con los ruts a verificar.
 #' @param db objeto dataframe de data.table.
-#' @param cols columnas donde mirar.
+#' @param cols columnas donde mirar y que extraer. La primera se usa para comparar (debe contener el rut) y el resto trae más información
 #'
 #' @export
 #'
 buscar_ruts <- function(ruts, db, cols=c("proveedor_rut", "proveedor_nombre_fantasia", "proveedor_mercado_nombre")) {
+  if (!"reclamos" %in% class(db)) stop("Objeto debe ser de la clase reclamos")
+
+  df <- db$original
   x <- sort(unique(na.omit(ruts)))
   exp1 <- paste0( cols[1], " %in% c(", paste0(x, collapse=", "), ")")
-  tp <- unique(db[eval(parse(text=exp1)), ..cols])
+  tp <- df[eval(parse(text=exp1)), list(N=.N), by=cols]
   setorder(tp, proveedor_rut)
   return(tp)
 }
 
+
+#' @encoding UTF-8
+#' @title Exportar diferentes elementos de la clase reclamos a csv.
+#'
+#' @param obj objeto de la clase reclamos.
+#' @param que vector de objetos a exportar. Opciones válidas son: `ranking`, `agrupados`.
+#' @param donde ruta de salida. Si ninguna es específicada se usará el directorio actual de trabajo.
+#' @param ... parámetros adicionales para \link[data.table]{fwrite}, como separador de columnas, marcador de decimales, verbose, etc.
+#'
+#' @param details Por completar, con la descripción de las columnas de cada output.
+#'
+#' @importFrom data.table fwrite
+#' @export
+#'
+exportar <- function(obj, que='ranking', donde=NULL, ...) {
+  if (!"reclamos" %in% class(obj)) stop("Objeto debe ser de la clase reclamos")
+  mpath <- ifelse(is.null(donde), getwd(), donde)
+  ctime <- format(Sys.time(), "%Y-%m-%d_%H%M%S")
+
+  if ('ranking' %in% que) {
+    fwrite(obj$reporte$tops, file.path(mpath, paste0(ctime, "_top_ranking_formato_ancho.csv")), ...)  # top metricas wide format colapsado
+    fwrite(obj$reporte$tops_metrics, file.path(mpath, paste0(ctime, "_top_ranking_formato_largo.csv")), ...)  # top metricas long format
+    fwrite(obj$reporte$serie, file.path(mpath, paste0(ctime, "_top_ranking_serie_formato_largo.csv")), ...) # serie completa de los top seleccionados, long format
+    # tops_metrics, pero formato wide (iterar sobre la lista)
+    temp <- lapply(names(obj$ranking$seleccion), function(x){
+      fwrite(obj$ranking$seleccion[[x]], file.path(mpath, paste0(ctime, "_top_ranking_formato_ancho_", x, ".csv")), ...)
+    })
+  }
+  if ('agrupados' %in% que) {
+    temp <- lapply(names(obj$reclamos), function(x){
+      fwrite(obj$reclamos[[x]]$datos, file.path(mpath, paste0(ctime, "_datos_agrupados_", x, ".csv")), ...)
+      fwrite(obj$reclamos[[x]]$limites, file.path(mpath, paste0(ctime, "_datos_agrupados_limites_", x, ".csv")), ...)
+    })
+  }
+
+}
 
 #' @encoding UTF-8
 #' @title Print method para la clase reclamos

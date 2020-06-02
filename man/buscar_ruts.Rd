@@ -16,7 +16,7 @@ buscar_ruts(
 
 \item{db}{objeto dataframe de data.table.}
 
-\item{cols}{columnas donde mirar.}
+\item{cols}{columnas donde mirar y que extraer. La primera se usa para comparar (debe contener el rut) y el resto trae más información}
 }
 \description{
 Búsqueda por rut

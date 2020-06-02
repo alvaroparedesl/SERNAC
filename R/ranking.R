@@ -61,7 +61,7 @@ seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, ...) {
       xt
     })
     print(report)
-    dat$ranking$reporte <- reporte
+    dat$ranking$reporte <- report
   }
 
   class(dat) <- "reclamos"

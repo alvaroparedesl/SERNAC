@@ -84,7 +84,7 @@ computar_reclamos <- function(mdatai,
   tiempos <- c(tiempos, Sys.time()); if (verbose) cat(difftime(tiempos[length(tiempos)], tiempos[length(tiempos) - 1], units="secs"), "segundos.\n")
   if (verbose) cat("Cálculos realizados en ", difftime(tiempos[length(tiempos)], tiempos[1], units="secs"), "segundos.\n")
 
-  ans2 <- list(reclamos=c(list(base=ans$base), ans2))
+  ans2 <- list(original=mdatai, proveedores=rutNombreN, reclamos=c(list(base=ans$base), ans2))
   ans2$Clases <- byClase
   ans2$Categorias <- byCategoria
   ans2$estado <- list(reclamos=TRUE, ranking=FALSE, series=FALSE, reporte=FALSE)
