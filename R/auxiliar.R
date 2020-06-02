@@ -65,7 +65,7 @@ extraer_series <- function(obj) {
     cols <- names(y1)[1:(which(names(y1) == "variable") + 1)]
     vars <- names(y1)[(which(names(y1) == "metric_cat") + 1): (length(names(y1)) - 2)]
 
-    y2 <- melt(y1, id.vars=c(cols, "up", "metric_cat", "posicion", "N.y"),
+    y2 <- melt(y1, id.vars=c(cols, "up", "metric_cat", "posicion", "N_registros"),
                measure.vars = vars, variable.name = "metrics", value.name="cuantil")[!is.na(cuantil)]
     setnames(y2, "t", "t_observado")
 
@@ -104,8 +104,8 @@ reportar <- function(dat) {
   todo <- rbindlist(mit, use.names=T, fill=T)
   setorder(todo, t_observado, clase, posicion, up, t)
   ids <- names(todo)[1:(which(names(todo) == "variable"))]
-  tops_metric <- unique(todo[, c(ids, "t_observado", "clase", "up", "posicion", "metrics", "N.y"), with=F])
-  tops <- tops_metric[, list(metrics=paste0(metrics, collapse=", ")), by=c(ids, "t_observado", "clase", "up", "posicion", "N.y")]
+  tops_metric <- unique(todo[, c(ids, "t_observado", "clase", "up", "posicion", "metrics", "N_registros"), with=F])
+  tops <- tops_metric[, list(metrics=paste0(metrics, collapse=", ")), by=c(ids, "t_observado", "clase", "up", "posicion", "N_registros")]
 
   dat$reporte <- list(tops=tops, tops_metrics=tops_metric, serie=todo, ids=ids)
   dat$estado$reporte <- TRUE

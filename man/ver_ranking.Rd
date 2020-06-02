@@ -5,7 +5,13 @@
 \alias{ver_ranking}
 \title{Visualizar rankings}
 \usage{
-ver_ranking(x, t_observado = NA, pos = 1, ascendente = NA, clase = "industria")
+ver_ranking(
+  x,
+  t_observado = NULL,
+  pos = 1,
+  ascendente = NULL,
+  clase = "industria"
+)
 }
 \arguments{
 \item{x}{objeto retornado por \link{computar_reclamos}.}

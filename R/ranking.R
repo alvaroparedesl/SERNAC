@@ -25,7 +25,6 @@ seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, ...) {
   })
   names(out_ranks) <- names(clases)
 
-  condicion1 <- paste0("N.y > ", nmin)
   seleccion <- lapply(1:length(clases), function(i) {
     x <- names(clases)[i]
     ys <- c(clases[1:i], "variable_valor", "variable", "t")
@@ -41,10 +40,9 @@ seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, ...) {
     y3 <- dcast(y2[outlier_i.y==T], exp1, value.var="p")
     mn <- dcast(selec[[x]]$datos[metrics=="N"], exp2, value.var="values")
     y4 <- merge(y3, mn, by=ys, all.x=T, order=F)
-    setorder(y4, outlier_ir, outlier_r, -N.y)
-    setnames(y4, "N.x", "N")
-    # y4[eval(parse(text=condicion1))][1:topn]
-    fin <- y4[y4[N.y > nmin, .I[1:topn], c("up", "t")]$V1][!is.na(N.y)]
+    setnames(y4, c("N.x", "N.y"), c("N", "N_registros"))
+    setorder(y4, outlier_ir, outlier_r, -N_registros)
+    fin <- y4[y4[N_registros > nmin, .I[1:topn], c("up", "t")]$V1][!is.na(N_registros)]
     fin[, posicion:=1:.N, by=c("up", "t")]
   })
   names(seleccion) <- names(clases)
@@ -101,7 +99,6 @@ rankear <- function(dt, col, t_observado='max') {
                                                              frankv(-c(outlier_i + outlier_e), na.last="keep")),
           by=c("metric_cat", "up", "t")]
   setorder(my_outs, outlier_r)
-  browser()
   return(my_outs)
 }
 
@@ -145,16 +142,29 @@ norm_rank <- function(x) {
 #' @inheritParams plot.reclamos
 #' @export
 #'
-ver_ranking <- function(x, t_observado=NA, pos=1, ascendente=NA, clase="industria"){
+ver_ranking <- function(x, t_observado=NULL, pos=1, ascendente=NULL, clase="industria"){
+  # x <- outt; t_observado='2019-10-15'; pos=NULL; ascendente=NULL; clase="industria"
   if (!"reclamos" %in% class(x)) stop("Objeto x debe ser de la clarse reclamos")
   tp <- x$reporte$tops
-  vs <- setNames(c(t_observado, pos, ascendente, clase), c("t_observado", "posicion", "up", "clase"))
-  ans <- lapply(1:length(vs), function(y) {
-    if (!is.na(vs[y])) {
-      return(paste0(names(vs)[y], " %in% c('", paste(vs[y], collapse="', '"), "')"))
-    }
-  })
-  expr1 <- do.call("paste", list(Filter(Negate(is.null), ans), collapse=" & "))
+  vars <- list(t_observado=t_observado, posicion=pos, up=ascendente, clase=clase)
+  expr1 <- NULL
+  for (i in 1:length(vars)){
+    if (!is.null(vars[[i]])){
+      if (names(vars[i]) == 't_observado') {
+        temp <- paste0(names(vars[i]), " %in% as.Date(c('", paste(vars[[i]], collapse="', '"), "'))")
+      } else if (names(vars[i]) == 'posicion') {
+        temp <- paste0(names(vars[i]), " %in% c(", paste(vars[[i]], collapse=", "), ")")
+      } else {
+        temp <- paste0(names(vars[i]), " %in% c('", paste(vars[[i]], collapse="', '"), "')")
+      }
 
-  print(tp[eval(parse(text=expr1))])
+      if (is.null(expr1)) {
+        expr1 <- temp
+      } else {
+        expr1 <- paste(expr1, temp, sep=" & ")
+      }
+    }
+  }
+
+  tp[eval(parse(text=expr1))]
 }

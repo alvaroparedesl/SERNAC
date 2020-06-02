@@ -59,10 +59,11 @@ plot.reclamos <- function(x, t_observado='min', pos=1, ascendente=NULL, clase="i
         if (nrow(temp2) > 0) {
           cter <- cter + 1
           par(mar = c(2, 4.1, 2, 2)); xlabt = ""
-          if (cter %in% c(prow, n2plot)) {par(mar = c(5, 4.1, 2, 2)); xlabt <- "Tiempo"}
+          if (cter %in% c(prow, n2plot)) {par(mar = c(4, 4.1, 2, 2)); xlabt <- "Tiempo"}
           last_line_time <- c(nrow(temp2)-1, nrow(temp2))
           with(temp2, plot(values~t, type="l", ylab="Valor", xlab=xlabt, las=1, lwd=2, bty="l", col="#878787", ...))
           with(temp2[last_line_time, ], lines(values~t, col=ifelse(up, "#d73027", "#4575b4"), lwd=3))
+          with(temp2[last_line_time[2], ], points(values~t, col=ifelse(up, "#d73027", "#4575b4"), pch=19, cex=2))
           mtext(paste(metricsi[i], unique(temp2$variable), unique(temp2$variable_valor), sep=" | "), side=3, line=-1, las=1, cex=.8)
           abline(with(temp2, lm(values~t)), col="#006837", lty=3, lwd=2)
         }
