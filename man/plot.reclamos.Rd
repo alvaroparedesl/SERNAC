@@ -9,7 +9,7 @@
   dat,
   t_observado = "min",
   pos = 1,
-  ascendente = TRUE,
+  ascendente = NULL,
   clase = "industria",
   metrics = NULL,
   ...

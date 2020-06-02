@@ -12,13 +12,19 @@
 #' @export
 #'
 #' @examples 1+1
-plot.reclamos <- function(dat, t_observado='min', pos=1, ascendente=TRUE, clase="industria", metrics=NULL, ...){
+plot.reclamos <- function(dat, t_observado='min', pos=1, ascendente=NULL, clase="industria", metrics=NULL, ...){
   db <- dat$reporte
   if (!"reclamos" %in% class(dat)) stop("Objeto db debe ser de la clase reclamos")
   if (!dat$estado$reporte) stop("Primero debe extraer la serie con reportar")
 
   clasei <- clase
-  mdat <- db$serie[posicion==pos & up==ascendente & clase==clasei]
+  if (is.null(ascendente)) {
+    up_ <-  c(TRUE, FALSE)
+  } else {
+    up_ <- ascendente
+  }
+
+  mdat <- db$serie[posicion==pos & up %in% up_ & clase==clasei]
   if (t_observado %in% c("min", "max")) {
     mt <- sort(unique(mdat$t_observado))
     mt <- switch(t_observado,
@@ -28,6 +34,7 @@ plot.reclamos <- function(dat, t_observado='min', pos=1, ascendente=TRUE, clase=
     mt <- as.Date(t_observado)
   }
   mdat <- mdat[t_observado==mt]
+  # outt$reporte$serie[posicion==1 & up==T & clase=="industria" & t_observado == as.Date("2019-12-15")]
 
   if (is.null(metrics)) {
     metricsi <- unique(mdat$metrics)
@@ -37,16 +44,31 @@ plot.reclamos <- function(dat, t_observado='min', pos=1, ascendente=TRUE, clase=
   mdat <- mdat[metrics %in% metricsi]
   cols <- names(mdat)[1:which(names(mdat) == "variable")]
 
-  par(mfrow=c(length(metricsi),1))
-  for (i in metricsi) {
-    temp <- mdat[metrics == i]
+  n2plot <- nrow(unique(mdat[, c("metrics", "up")]))
+  dev.new(noRStudioGD = T)
+  pcol <- ifelse(n2plot > 6, 2, 1)
+  prow <- ifelse(n2plot > 6, ceiling(n2plot/2), n2plot)
+  par(mfcol=c(prow, pcol))
+  cter <- 0
+  for (i in 1:length(metricsi)) {
+    temp <- mdat[metrics == metricsi[i]]
     if (nrow(temp) > 0) {
-      with(temp, plot(values~t, type="l", ylab="Valor", xlab="Tiempo", las=1,
-                      main=i))
-      # main=paste0(i, " | ", paste0(mainn, collapse="-"))))
+      for (ups in up_) {
+        temp2 <- temp[up %in% ups]
+        if (nrow(temp2) > 0) {
+          cter <- cter + 1
+          par(mar = c(2, 4.1, 2, 2)); xlabt = ""
+          if (cter %in% c(prow, n2plot)) {par(mar = c(5, 4.1, 2, 2)); xlabt <- "Tiempo"}
+          last_line_time <- c(nrow(temp2)-1, nrow(temp2))
+          with(temp2, plot(values~t, type="l", ylab="Valor", xlab=xlabt, las=1, lwd=2, bty="l", col="#878787"))
+          with(temp2[last_line_time, ], lines(values~t, col=ifelse(up, "#d73027", "#4575b4"), lwd=3))
+          mtext(paste(metricsi[i], unique(temp2$variable), unique(temp2$variable_valor), sep=" | "), side=3, line=-1, las=1, cex=.8)
+          abline(with(temp2, lm(values~t)), col="#006837", lty=3, lwd=2)
+        }
+      }
     } else {
       warning(paste0("No hay datos disponibles para la metrica '", i))
     }
   }
-  return(unique(mdat[, ..cols]))
+  return(mdat[, list(N=.N), cols])
 }
