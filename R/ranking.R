@@ -21,7 +21,7 @@ seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, ...) {
   out_ranks <- lapply(1:length(clases), function(i) {
     ys <- clases[1:i]
     y <- selec[[names(clases)[i]]]$datos[outlier_i==T | outlier_e==T]
-    ans <- rankear(y, ys, ...)
+    rankear(y, ys, ...)
   })
   names(out_ranks) <- names(clases)
 
@@ -49,7 +49,7 @@ seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, ...) {
   # seleccion2 <- list(reclamos=dat, seleccion=seleccion, reporte=NULL, atributos=list(topn=topn, nmin=nmin))
   dat$ranking <- list(seleccion=seleccion)
   dat$ranking$reporte <- NULL
-  dat$atributos$ranking <- list(topn=topn, nmin=nmin)
+  dat$atributos$ranking <- list(dates=sort(unique(outt$ranking$seleccion$industria$t)), topn=topn, nmin=nmin)
   dat$estado$ranking <- TRUE
 
   if (reporte){

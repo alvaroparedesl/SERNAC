@@ -19,5 +19,10 @@ Dependes:
   data.table
 Imports: 
   data.table,
+  DT,
+  knitr,
+  plotly,
   readxl,
-  knitr
+  shiny,
+  shinydashboard
+  
