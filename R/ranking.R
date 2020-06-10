@@ -49,7 +49,7 @@ seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, ...) {
   # seleccion2 <- list(reclamos=dat, seleccion=seleccion, reporte=NULL, atributos=list(topn=topn, nmin=nmin))
   dat$ranking <- list(seleccion=seleccion)
   dat$ranking$reporte <- NULL
-  dat$atributos$ranking <- list(dates=sort(unique(outt$ranking$seleccion$industria$t)), topn=topn, nmin=nmin)
+  dat$atributos$ranking <- list(dates=sort(unique(seleccion[[1]]$t)), topn=topn, nmin=nmin)
   dat$estado$ranking <- TRUE
 
   if (reporte){
@@ -102,25 +102,6 @@ rankear <- function(dt, col, t_observado='max') {
   return(my_outs)
 }
 
-
-####--------------------------------------------------------------------------
-#' @encoding UTF-8
-#' @title Obtener registro con mayoría
-#'
-#' @param db data.table dataframe
-#' @param cols columna(s) de agrupación, por las que filtrarán los registros.
-#' @param bycol columna(s) que contiene el registro que seerá usadao para buscar el mayor N.
-#'
-#' @return
-#' @export
-#'
-#' @examples 1+1
-obtener_mayoria <- function(db, cols, bycol) {
-  colsd <- setdiff(cols, bycol)
-  tabN <- db[, list(N=.N), by=cols]
-  tabMaj <- tabN[, eval(parse(text=paste0("list(", bycol, " = ", bycol, "[which.max(N)])"))), by=colsd, ]
-  return(tabMaj)
-}
 
 #' @encoding UTF-8
 #' @title Ranking normalizado

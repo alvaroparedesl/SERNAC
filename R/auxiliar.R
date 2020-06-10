@@ -171,6 +171,46 @@ exportar <- function(obj, que='ranking', donde=NULL, ...) {
 
 }
 
+####--------------------------------------------------------------------------
+#' @encoding UTF-8
+#' @title Obtener registro con mayoría
+#'
+#' @param db data.table dataframe
+#' @param cols columna(s) de agrupación, por las que filtrarán los registros.
+#' @param bycol columna(s) que contiene el registro que seerá usadao para buscar el mayor N.
+#'
+#' @return
+#' @export
+#'
+#' @examples 1+1
+obtener_mayoria <- function(db, cols, bycol) {
+  colsd <- setdiff(cols, bycol)
+  tabN <- db[, list(N=.N), by=cols]
+  tabMaj <- tabN[, eval(parse(text=paste0("list(", bycol, " = ", bycol, "[which.max(N)])"))), by=colsd, ]
+  return(tabMaj)
+}
+
+####--------------------------------------------------------------------------
+#' @encoding UTF-8
+#' @title Obtener registro más reciente
+#'
+#' @details Basado en `caso_creacion_fecha`.
+#'
+#' @param db data.table dataframe
+#' @param cols columna(s) de agrupación, por las que filtrarán los registros.
+#' @param bycol columna(s) que contiene el registro que seerá usadao para buscar el mayor N.
+#'
+#' @return
+#' @export
+#'
+#' @examples 1+1
+obtener_reciente <- function(db, cols, bycol) {
+  colsd <- setdiff(cols, bycol)
+  tabN <- db[, list(N=as.numeric(max(caso_creacion_fecha))), by=cols]
+  tabMaj <- tabN[, eval(parse(text=paste0("list(", bycol, " = ", bycol, "[which.max(N)])"))), by=colsd, ]
+  return(tabMaj)
+}
+
 #' @encoding UTF-8
 #' @title Print method para la clase reclamos
 #'

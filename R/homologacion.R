@@ -5,16 +5,22 @@
 #' y añade datos del SII. La tabla queda lista para ser añadida a la tabla general de datos. La función trata de ser lo más
 #' inteligente posible, pero es necesario mantener los formatos apropiados.
 #'
-#' @param db ruta al archivo, en excel (formato especial flexible).
-#' @param diccionario_columnas ruta al archivo de diccionario de columnas en excel (formato especial estricto).
-#' @param codigos_comunales ruta al archivo de codigos y nombres comunales en excel (formato especial estricto). Si 'skip', se salta este paso.
-#' @param arbol_motivo_legal ruta al archivo de equivalencias de motivos legales en excel (formato especial estricto).
+#' @param db ruta al archivo, en excel o csv (formato especial flexible).
+#' @param diccionario_columnas ruta al archivo de diccionario de columnas en csv/excel (formato especial estricto).
+#' @param codigos_comunales ruta al archivo de codigos y nombres comunales en csv/excel (formato especial estricto). Si 'skip', se salta este paso.
+#' @param arbol_motivo_legal ruta al archivo de equivalencias de motivos legales en csv/excel (formato especial estricto).
 #' @param datos_sii ruta al archivo de datos del SII, en csv (formato especial estricto).
 #' @param verbose si TRUE, imprime estados de avance.
 #' @param full_output si TRUE, entrega todas las tablas usadas. Si FALSE, entrega solo la tabla principal modificada.
+#' @param mercados_de_interes nombre de `proveedor_mercado_nombre` de interés. Por defecto es FINANCIEROS, SEGUROS, SALUD y PREVISION.
+#' @param drop porcentaje (de 0 a 1) de NAs tolerables antes de descartar la fila (solo si hay csv).
+#' Por defecto se usa el 80% (si hay 100 colunas y 80 o más de ellas tienen valores faltantes, se descarta).
+#'
+#' @details Notar que en el caso de que `db` sea un csv, se hace un revisión de valores faltantes.
+#' Si estos superan o son iguales al 80% (se puede cambiar, modificando el parámetro `drop`) del número de columnas, la fila será descartada.
 #'
 #' @importFrom readxl read_excel
-#' @importFrom data.table data.table setnames
+#' @importFrom data.table data.table setnames fread tstrsplit copy
 #' @importFrom utils tail
 #' @return
 #' @export
@@ -25,17 +31,29 @@ homologar_db <- function(db,
                          arbol_motivo_legal=NULL,
                          datos_sii=NULL,
                          verbose=TRUE,
-                         full_output=TRUE) {
+                         full_output=TRUE,
+                         mercados_de_interes=c("FINANCIEROS", "SEGUROS", "SALUD", "PREVISION"),
+                         drop=.8) {
 
   #-------------- 1. Nombres y seleccion
+  check_dates <- FALSE
   if (is.null(db)) {
     #--- cargar de base de datos
   } else {
     if (verbose) cat("Leyendo base de datos\n")
     if (is.character(db)){
-      dt <- data.table(read_excel(db))
+      if (endsWith(db, ".csv")) {
+        dat <- fread(db)
+        check_dates <- TRUE
+        outl <- rowSums(is.na(dat) | dat == '') >= ncol(dat)*drop # hasta un 80% de columnas con NA
+        if (any(outl)) {
+          dat <- dat[!outl, ]
+        }
+      } else {
+        dat <- data.table(read_excel(db))
+      }
     } else {
-      dt <- copy(data.table(db))
+      dat <- copy(data.table(db))
     }
   }
 
@@ -47,51 +65,61 @@ homologar_db <- function(db,
       if (diccionario_columnas == "skip"){
         no_skip <- FALSE
       } else {
-        col_dict <- data.table(read_excel(diccionario_columnas))
+        if (endsWith(diccionario_columnas, ".csv")) {
+          col_dict <- fread(diccionario_columnas)
+        } else {
+          col_dict <- data.table(read_excel(diccionario_columnas))
+        }
       }
     } else {
       col_dict <- copy(data.table(diccionario_columnas))
     }
   }
 
-  if (no_skip) {
-    nombres_comunes <- intersect(names(dt), col_dict$original)
-    setnames(dt, col_dict[original %in% nombres_comunes]$original, col_dict[original %in% nombres_comunes]$nuevo)
-
-    uniq_cols <- unique(col_dict[Uso==1, c("nuevo", "Uso")])$nuevo
-    dt2 <- dt[, ..uniq_cols]
-    if (ncol(dt2) != length(uniq_cols)) {
-      stop("No se han encontrado las columnas necesarias.")
-    }
+  uniq_cols <- c("caso_cierre_fecha", "caso_creacion_fecha", "categoria_motivo_legal",
+                 "cierre_corto", "consumidor_genero", "consumidor_id",
+                 "estado_caso_nombre", "mercado_tipo_producto_nombre", "motivo_legal_descripcion",
+                 "proveedor_mercado_categoria_nombre", "proveedor_mercado_nombre",
+                 "proveedor_nombre_fantasia", "proveedor_rut")
+  if ("consumidor_comuna" %in% colnames(dat)){
+    uniq_cols <- c(uniq_cols, "consumidor_comuna")
   } else {
-    dt2 <- copy(dt)
+    uniq_cols <- c(uniq_cols, "cut_comuna")
+  }
+  if (no_skip) {
+    if (any(duplicated(colnames(dat)))){
+      warning("Columnas duplicadas, podría generar efectos indeseados: ", paste(names(dat)[duplicated(colnames(dat))], collapse=", "))
+    }
+    nombres_comunes <- intersect(names(dat), col_dict$original)
+    setnames(dat, col_dict[original %in% nombres_comunes]$original, col_dict[original %in% nombres_comunes]$nuevo)
+    uniq_cols <- unique(col_dict[Uso==1, c("nuevo", "Uso")])$nuevo
+  }
+
+  # quedarse con las columnas que se necesitan
+  dt2 <- dat[, ..uniq_cols]
+  if (ncol(dt2) != length(uniq_cols)) {
+    stop("No se han encontrado las columnas necesarias.")
+  }
+
+  #------ check dates
+  if (check_dates) {
+    dt2[, caso_cierre_fecha:=as.POSIXct(caso_cierre_fecha, format="%Y-%m-%d %H:%M:%S")]
+    dt2[, caso_creacion_fecha :=as.POSIXct(caso_creacion_fecha )]
   }
 
   #------------------------------------------------------------------------------------------------
   #------ 2. Seleccionar mercados que me interesan
-  dt2 <- dt2[proveedor_mercado_nombre %in% c("FINANCIEROS", "SEGUROS", "SALUD", "PREVISION")]
+  dt2 <- dt2[proveedor_mercado_nombre %in% mercados_de_interes]
 
   #------------------------------------------------------------------------------------------------
   #------ 3. Asignar rut a proveedores faltantes (por mayoría) y nombres de razón social por rut de mayoría
   #--- si rut es string...
+  #20200610: ahora se hace por fuera, en un paso extra
   if (!is.numeric(dt2$proveedor_rut)){
     dt2[, proveedor_rut:=tstrsplit(proveedor_rut, "-", fixed=TRUE, keep=1L )]
     dt2[, proveedor_rut:=as.numeric(proveedor_rut)] # si lo hago con la línea anterior, no funciona
   }
-  # dt2[, list(N=.N), by=c("proveedor_rut", "proveedor_nombre_fantasia")]
-
-  #-- hay ruts NA??
-  if (any(is.na(dt2$proveedor_rut))) {
-    warning("Hay ruts con NA")
-  }
-
-  #--- Nombres por rut de mayoría
-  rutNombreMaj <- obtener_mayoria(dt2, c("proveedor_rut", "proveedor_nombre_fantasia"), "proveedor_nombre_fantasia")
-  rutMercadoMaj <- obtener_mayoria(dt2, c("proveedor_rut", "proveedor_mercado_nombre"), "proveedor_mercado_nombre")
-  rutMercadoCatMaj <- obtener_mayoria(dt2, c("proveedor_rut", "proveedor_mercado_categoria_nombre"), "proveedor_mercado_categoria_nombre")
-
-  dt2[, c("proveedor_nombre_fantasia", "proveedor_mercado_nombre", "proveedor_mercado_categoria_nombre") := NULL]
-  dt3 <- merge(merge(merge(dt2, rutNombreMaj, sort=F), rutMercadoMaj, sort=F), rutMercadoCatMaj, sort=F)
+  dt3 <- dt2
 
   #------------------------------------------------------------------------------------------------
   #----- 4. Revisar comuna
@@ -106,7 +134,11 @@ homologar_db <- function(db,
       if (codigos_comunales == "skip"){
         no_skip <- FALSE
       } else {
-        comunas_cod <- data.table(read_excel(codigos_comunales))
+        if (endsWith(codigos_comunales, ".csv")) {
+          comunas_cod <- fread(codigos_comunales)
+        } else {
+          comunas_cod <- data.table(read_excel(codigos_comunales))
+        }
       }
     } else {
       comunas_cod <- copy(data.table(codigos_comunales))
@@ -141,7 +173,11 @@ homologar_db <- function(db,
   } else {
     if (verbose) cat("Leyendo motivos legales\n")
     if (is.character(arbol_motivo_legal)){
-      farbol <- homologar_arbol(data.table(read_excel(arbol_motivo_legal, "ACTUAL")))
+      if (endsWith(arbol_motivo_legal, ".csv")) {
+        farbol <- homologar_arbol(fread(arbol_motivo_legal))
+      } else {
+        farbol <- homologar_arbol(data.table(read_excel(arbol_motivo_legal, "ACTUAL")))
+      }
       arbol <- farbol$arbol
     } else {
       arbol <- copy(data.table(arbol_motivo_legal))
@@ -268,4 +304,68 @@ homologar_sii <- function(siiData) {
   siiData[trabajadores_informados %% 1 != 0, trabajadores_informados:=trabajadores_informados*1000]
 
   return(siiData)
+}
+
+#' @encoding UTF-8
+#' @title Homologa los ruts y su nombre de fantasía (dentro de lo posible).
+#'
+#' @param db db previamente homologada con \link{homologar_db}.
+#' @param tolerancia número de nombres de fantasía por rut máximo para asignar por mayoría, antes de considerar el registro como extraño.
+#' Ejemplo, cuando no se sabe el rut de la empresa y se rellena con 111111, etc.
+#' @param criterio citerio de asignación del nombre de fantasía al rut. Valores posibles son 'mayoria' o 'reciente'. Por defecto 'reciente'.
+#'
+#' @importFrom data.table tstrsplit
+#' @export
+#'
+depurar_ruts <- function(db, tolerancia=20, criterio='reciente'){
+  if (!is.numeric(db$proveedor_rut)){
+    db[, proveedor_rut:=tstrsplit(proveedor_rut, "-", fixed=TRUE, keep=1L )]
+    db[, proveedor_rut:=as.numeric(proveedor_rut)] # si lo hago con la línea anterior, no funciona
+  }
+  # dt2[, list(N=.N), by=c("proveedor_rut", "proveedor_nombre_fantasia")]
+
+  #-- hay ruts NA??
+  if (any(is.na(db$proveedor_rut))) {
+    warning("Hay ruts con NA")
+  }
+
+  #--- Nombres por rut de mayoría
+  if (criterio == 'mayoria') {
+    rutNombreMaj <- obtener_mayoria(db, c("proveedor_rut", "proveedor_nombre_fantasia"), "proveedor_nombre_fantasia")
+    rutMercadoMaj <- obtener_mayoria(db, c("proveedor_rut", "proveedor_mercado_nombre"), "proveedor_mercado_nombre")
+    rutMercadoCatMaj <- obtener_mayoria(db, c("proveedor_rut", "proveedor_mercado_categoria_nombre"), "proveedor_mercado_categoria_nombre")
+  } else if (criterio == 'reciente') {
+    rutNombreMaj <- obtener_reciente(db, c("proveedor_rut", "proveedor_nombre_fantasia"), "proveedor_nombre_fantasia")
+    rutMercadoMaj <- obtener_reciente(db, c("proveedor_rut", "proveedor_mercado_nombre"), "proveedor_mercado_nombre")
+    rutMercadoCatMaj <- obtener_reciente(db, c("proveedor_rut", "proveedor_mercado_categoria_nombre"), "proveedor_mercado_categoria_nombre")
+  }
+  db[, c("proveedor_nombre_fantasia", "proveedor_mercado_nombre", "proveedor_mercado_categoria_nombre") := NULL]
+  db2 <- merge(merge(merge(db, rutNombreMaj, sort=F), rutMercadoMaj, sort=F), rutMercadoCatMaj, sort=F)
+
+  return(db2)
+}
+
+
+#' @encoding UTF-8
+#' @title Consolidar base de datos
+#'
+#' @description Agrega nuevos registros a la base de datos de inicio.
+#'
+#' @param db db previamente homologada con \link{homologar_db}.
+#' @param grabar si es TRUE, la unión de las bases de datos se guarda como un nuevo archivo actualizado.
+#' Se recomienda utilizarlo sólo cuando se esté con certeza de que los valores no cambiarán. Por defecto es FALSE.
+#' @param ... base o bases de datos a agregar, previamente homologadas con \link{homologar_db}.
+#'
+#'#' @importFrom data.table rbindlist
+#' @export
+#'
+consolidar_db <- function(grabar=FALSE, db, ...){
+  nuevos <- list(...)
+  if (is.list(db)){
+    ans <- rbindlist(c(list(db), nuevos), use.names=T, fill=T)
+  }
+  if (grabar){
+    print('No graba')
+  }
+  return(ans)
 }

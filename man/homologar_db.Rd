@@ -12,23 +12,30 @@ homologar_db(
   arbol_motivo_legal = NULL,
   datos_sii = NULL,
   verbose = TRUE,
-  full_output = TRUE
+  full_output = TRUE,
+  mercados_de_interes = c("FINANCIEROS", "SEGUROS", "SALUD", "PREVISION"),
+  drop = 0.8
 )
 }
 \arguments{
-\item{db}{ruta al archivo, en excel (formato especial flexible).}
+\item{db}{ruta al archivo, en excel o csv (formato especial flexible).}
 
-\item{diccionario_columnas}{ruta al archivo de diccionario de columnas en excel (formato especial estricto).}
+\item{diccionario_columnas}{ruta al archivo de diccionario de columnas en csv/excel (formato especial estricto).}
 
-\item{codigos_comunales}{ruta al archivo de codigos y nombres comunales en excel (formato especial estricto). Si 'skip', se salta este paso.}
+\item{codigos_comunales}{ruta al archivo de codigos y nombres comunales en csv/excel (formato especial estricto). Si 'skip', se salta este paso.}
 
-\item{arbol_motivo_legal}{ruta al archivo de equivalencias de motivos legales en excel (formato especial estricto).}
+\item{arbol_motivo_legal}{ruta al archivo de equivalencias de motivos legales en csv/excel (formato especial estricto).}
 
 \item{datos_sii}{ruta al archivo de datos del SII, en csv (formato especial estricto).}
 
 \item{verbose}{si TRUE, imprime estados de avance.}
 
 \item{full_output}{si TRUE, entrega todas las tablas usadas. Si FALSE, entrega solo la tabla principal modificada.}
+
+\item{mercados_de_interes}{nombre de \code{proveedor_mercado_nombre} de interés. Por defecto es FINANCIEROS, SEGUROS, SALUD y PREVISION.}
+
+\item{drop}{porcentaje (de 0 a 1) de NAs tolerables antes de descartar la fila (solo si hay csv).
+Por defecto se usa el 80\% (si hay 100 colunas y 80 o más de ellas tienen valores faltantes, se descarta).}
 }
 \value{
 
@@ -37,4 +44,8 @@ homologar_db(
 Permite homologar nombres de columnas, comunas, motivos legales; también selecciona columnas de interés,
 y añade datos del SII. La tabla queda lista para ser añadida a la tabla general de datos. La función trata de ser lo más
 inteligente posible, pero es necesario mantener los formatos apropiados.
+}
+\details{
+Notar que en el caso de que \code{db} sea un csv, se hace un revisión de valores faltantes.
+Si estos superan o son iguales al 80\% (se puede cambiar, modificando el parámetro \code{drop}) del número de columnas, la fila será descartada.
 }
