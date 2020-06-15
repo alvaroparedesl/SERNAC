@@ -1,4 +1,40 @@
 #' @encoding UTF-8
+#' @title Función que permite añadir datos nuevos
+#'
+#' @description Esta función es un parser para las funciones individuales para agregar nuevos datos, de una manera más cómoda y fácil.
+#'
+#' @param base base de datos data.frame o data.table de base, a la cual se le añadirá nueva información.
+#' @param ... argumentos pasados a las funciones \link{homologar_db}, \link{consolidar_db} y \link{depurar_ruts}.
+#'
+#' @export
+#'
+agregar_dbs <- function(base, ...) {
+  input <- list(...)
+  input_names <- names(input)
+  data <- input[input_names == ""]
+  params <- input[input_names != ""]
+
+  iter <- 1
+  datal <- list()
+  for (i in data) {
+    if (iter == 1) {
+      temp <- do.call("homologar_db", c(list(db=i), params))
+    } else {
+      temp <- homologar_db(i, temp$diccionario_columnas, temp$codigos_comunales,
+                           temp$arbol_motivo_legal, temp$datos_sii)
+    }
+    datal[[i]] <- temp$tabla
+    iter <- iter + 1
+  }
+  dbf_ <- homologar_db(base, 'skip', 'skip', temp$arbol_motivo_legal, temp$datos_sii,
+                       verbose=TRUE, full_output=FALSE)$tabla
+
+  # dbfM <- consolidar_db(dbf_, grabar=F, nuevo1, nuevo2)
+  dbfM <- do.call("consolidar_db", c(list(db=dbf_, grabar=F), unname(datal)))
+  depurar_ruts(dbfM, criterio='reciente')
+}
+
+#' @encoding UTF-8
 #' @title Homologa datos de entrada al formato apropiado
 #'
 #' @description Permite homologar nombres de columnas, comunas, motivos legales; también selecciona columnas de interés,
@@ -103,8 +139,11 @@ homologar_db <- function(db,
 
   #------ check dates
   if (check_dates) {
-    dt2[, caso_cierre_fecha:=as.POSIXct(caso_cierre_fecha, format="%Y-%m-%d %H:%M:%S")]
-    dt2[, caso_creacion_fecha :=as.POSIXct(caso_creacion_fecha )]
+    formatos <- c("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y/%m/%d %H:%M:%S", "%Y/%m/%d %H:%M", "%d-%m-%Y %H:%M:%S", "%d-%m-%Y %H:%M", "%d/%m/%Y %H:%M:%S", "%d/%m/%Y %H:%M")
+    dt2[caso_cierre_fecha=='', caso_cierre_fecha:=NA]
+    dt2[, caso_cierre_fecha:=as.POSIXct(caso_cierre_fecha, tryFormats=formatos)]
+    dt2[caso_creacion_fecha=='', caso_creacion_fecha:=NA]
+    dt2[, caso_creacion_fecha :=as.POSIXct(caso_creacion_fecha, tryFormats=formatos)]
   }
 
   #------------------------------------------------------------------------------------------------
@@ -359,7 +398,7 @@ depurar_ruts <- function(db, tolerancia=20, criterio='reciente'){
 #'#' @importFrom data.table rbindlist
 #' @export
 #'
-consolidar_db <- function(grabar=FALSE, db, ...){
+consolidar_db <- function(..., db, grabar=FALSE){
   nuevos <- list(...)
   if (is.list(db)){
     ans <- rbindlist(c(list(db), nuevos), use.names=T, fill=T)
@@ -369,3 +408,5 @@ consolidar_db <- function(grabar=FALSE, db, ...){
   }
   return(ans)
 }
+
+# guardar_db <- function(x)

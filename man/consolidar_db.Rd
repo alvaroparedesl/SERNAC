@@ -5,17 +5,17 @@
 \alias{consolidar_db}
 \title{Consolidar base de datos}
 \usage{
-consolidar_db(grabar = FALSE, db, ...)
+consolidar_db(..., db, grabar = FALSE)
 }
 \arguments{
-\item{grabar}{si es TRUE, la unión de las bases de datos se guarda como un nuevo archivo actualizado.
-Se recomienda utilizarlo sólo cuando se esté con certeza de que los valores no cambiarán. Por defecto es FALSE.}
-
-\item{db}{db previamente homologada con \link{homologar_db}.}
-
 \item{...}{base o bases de datos a agregar, previamente homologadas con \link{homologar_db}.
 
 #' @importFrom data.table rbindlist}
+
+\item{db}{db previamente homologada con \link{homologar_db}.}
+
+\item{grabar}{si es TRUE, la unión de las bases de datos se guarda como un nuevo archivo actualizado.
+Se recomienda utilizarlo sólo cuando se esté con certeza de que los valores no cambiarán. Por defecto es FALSE.}
 }
 \description{
 Agrega nuevos registros a la base de datos de inicio.

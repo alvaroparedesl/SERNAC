@@ -5,7 +5,7 @@
 #'
 #' @importFrom plotly renderPlotly plotlyOutput plot_ly layout
 #' @importFrom DT datatable renderDataTable dataTableOutput
-#' @importFrom shiny shinyApp runApp fluidRow column tableOutput renderTable selectizeInput selectInput renderUI HTML htmlOutput
+#' @importFrom shiny shinyApp runApp fluidRow column tableOutput renderTable selectizeInput selectInput renderUI HTML htmlOutput icon
 #' @import shinydashboard
 #' @export
 #'
@@ -85,6 +85,44 @@ shinyPlot <- function(obj) {
                xaxis = list(range = xrange, title = "Tiempo"), hovermode = "x unified",
                yaxis = list(range = yrange, title = "Número"))
     })
+    output$rankplotr <- renderPlotly({
+      fechas <- input$dates
+      clases <- input$class
+      sele <- obj$reporte$tops[clase %in% clases & t_observado %in% as.Date(fechas) & up == TRUE]
+      mdat <- obj$reclamos[[clases]]$datos[metrics=='N' & t <= as.Date(fechas)]
+      cols <- c(obj$Clases[1:which(clases == names(obj$Clases))], 'variable_valor', 'variable')
+      what <- unlist(sele[, do.call(paste, c(.SD, sep=" | ")), .SDcols=cols])
+      what <- factor(what, ordered=T)
+      mdat[, supid:=factor(do.call(paste, c(.SD, sep=" | ")), levels=what), .SDcols=cols]
+      mdat <- mdat[supid %in% what]
+      xrange <- range(mdat$t, na.rm=T)
+      yrange <- range(mdat$values_norm, na.rm=T)
+      # print(sele)
+      pl <- plot_ly(mdat, x = ~t, y=~values_norm, color =~supid, type="scatter", mode = "line",
+                    colors = colorRampPalette(c("#a50026", "#ffff33", "#1f78b4"))(nrow(sele)) ) #"Paired")
+      layout(pl, title = sprintf("Ranking ascendente de alertas (top %s)", nrow(sele)),
+             xaxis = list(range = xrange, title = "Tiempo"),
+             yaxis = list(range = yrange, title = "Número (estandarizado)"))
+    })
+    output$rankplotl <- renderPlotly({
+      fechas <- input$dates
+      clases <- input$class
+      sele <- obj$reporte$tops[clase %in% clases & t_observado %in% as.Date(fechas) & up == FALSE]
+      mdat <- obj$reclamos[[clases]]$datos[metrics=='N' & t <= as.Date(fechas)]
+      cols <- c(obj$Clases[1:which(clases == names(obj$Clases))], 'variable_valor', 'variable')
+      what <- unlist(sele[, do.call(paste, c(.SD, sep=" | ")), .SDcols=cols])
+      what <- factor(what, ordered=T)
+      mdat[, supid:=factor(do.call(paste, c(.SD, sep=" | ")), levels=what), .SDcols=cols]
+      mdat <- mdat[supid %in% what]
+      xrange <- range(mdat$t, na.rm=T)
+      yrange <- range(mdat$values_norm, na.rm=T)
+      # print(sele)
+      pl <- plot_ly(mdat, x = ~t, y=~values_norm, color =~supid, type="scatter", mode = "line",
+                    colors = colorRampPalette(c("#a50026", "#ffff33", "#1f78b4"))(nrow(sele)) ) #"Paired")
+      layout(pl, title = sprintf("Ranking descendente de alertas (top %s)", nrow(sele)),
+             xaxis = list(range = xrange, title = "Tiempo"),
+             yaxis = list(range = yrange, title = "Número (estandarizado)"))
+    })
   }
 
   ui <- dashboardPage(
@@ -104,36 +142,60 @@ shinyPlot <- function(obj) {
       selectizeInput(
         'rank_pos', '3. Posición del ranking', choices = 1:obj$atributos$ranking$topn,
         selected = 1
+      ),
+      sidebarMenu(
+        menuItem("Ranking", tabName = "general", icon = icon("dashboard")),
+        menuItem("Detalle alertas", tabName = "detalle", icon = icon("th"))
       )
     ),
+
     dashboardBody(
-      fluidRow(
-        box(htmlOutput("caption"), width=12)
-      ),
-
-      fluidRow(
-        box(
-          title="Alertas descendentes", status='primary', solidHeader = T, collapsible = F,
-          plotlyOutput('plotl')
+      tabItems(
+        tabItem(tabName = "general",
+          fluidRow(
+            box(
+              title="Alertas ascendentes", status='danger', solidHeader = T, collapsible = F, # height=300,
+              plotlyOutput('rankplotr'), width=12
+            )
+          ),
+          fluidRow(
+            box(
+              title="Alertas descendentes", status='primary', solidHeader = T, collapsible = F,
+              plotlyOutput('rankplotl'), width=12
+            )
+          )
         ),
-        box(
-          title="Alertas ascendentes", status='danger', solidHeader = T, collapsible = F, # height=300,
-          plotlyOutput('plotr')
-        )
-      ),
 
-      fluidRow(
-        column(6,
-               box(tableOutput('clases')),
-               box(tableOutput('categorias'))
-        ),
-        column(6,
-               box(dataTableOutput('ruts'), width=6)
-        )
-      ),
+        tabItem(tabName = "detalle",
+          fluidRow(
+            box(htmlOutput("caption"), width=12)
+          ),
 
-      fluidRow(
-        box(dataTableOutput('ranking'), width=12)
+          fluidRow(
+            box(
+              title="Alertas descendentes", status='primary', solidHeader = T, collapsible = F,
+              plotlyOutput('plotl')
+            ),
+            box(
+              title="Alertas ascendentes", status='danger', solidHeader = T, collapsible = F, # height=300,
+              plotlyOutput('plotr')
+            )
+          ),
+
+          fluidRow(
+            column(6,
+                   box(tableOutput('clases')),
+                   box(tableOutput('categorias'))
+            ),
+            column(6,
+                   box(dataTableOutput('ruts'), width=6)
+            )
+          ),
+
+          fluidRow(
+            box(dataTableOutput('ranking'), width=12)
+          )
+        )
       )
     )
   )
