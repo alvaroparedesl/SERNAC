@@ -227,7 +227,7 @@ homologar_db <- function(db,
                by=c("proveedor_mercado_nombre", "motivo_legal_descripcion", "categoria_motivo_legal"),
                all.x=T, sort=F)
   dt5[, c("motivo_legal_descripcion", "categoria_motivo_legal"):=NULL]
-  setnames(dt5, c("PROPUESTA DE FUSIÓN MOTIVO LEGAL", "PROPUESTA DE FUSIÓN CATEGORIA LEGAL"), c("motivo_legal_descripcion", "categoria_motivo_legal"))
+  setnames(dt5, c("PROPUESTA DE FUSION MOTIVO LEGAL", "PROPUESTA DE FUSION CATEGORIA LEGAL"), c("motivo_legal_descripcion", "categoria_motivo_legal"))
 
   #------------------------------------------------------------------------------------------------
   # 6. SII data
@@ -276,18 +276,18 @@ homologar_db <- function(db,
 #' @export
 #'
 homologar_arbol <- function(arbol_motivo_legal) {
-  mycols <- c("proveedor_mercado_nombre", "PROPUESTA DE FUSIÓN MOTIVO LEGAL", "PROPUESTA DE FUSIÓN CATEGORIA LEGAL")
+  mycols <- c("proveedor_mercado_nombre", "PROPUESTA DE FUSION MOTIVO LEGAL", "PROPUESTA DE FUSION CATEGORIA LEGAL")
 
   #-- Obteniendo únicos
   # para los que tienen grado de daño sin NA
   uni <- arbol_motivo_legal[, #!is.na(`Grado de daño`),
-                            list(N=sum(`Número`)),
-                            by=c("Grado de daño", "Facilidad de prueba", mycols)]
+                            list(N=sum(`Numero`)),
+                            by=c("Grado de dano", "Facilidad de prueba", mycols)]
   # para los que tienen grado de daño con NA
-  uni2 <- arbol_motivo_legal[!is.na(`Grado de daño`),
-                             list(N=sum(`Número`)),
-                             by=c("Grado de daño", "Facilidad de prueba", mycols[-1])]
-  uni <- uni[order(proveedor_mercado_nombre, `PROPUESTA DE FUSIÓN MOTIVO LEGAL`, `PROPUESTA DE FUSIÓN CATEGORIA LEGAL`, -N)]
+  uni2 <- arbol_motivo_legal[!is.na(`Grado de dano`),
+                             list(N=sum(`Numero`)),
+                             by=c("Grado de dano", "Facilidad de prueba", mycols[-1])]
+  uni <- uni[order(proveedor_mercado_nombre, `PROPUESTA DE FUSION MOTIVO LEGAL`, `PROPUESTA DE FUSION CATEGORIA LEGAL`, -N)]
   setnames(uni, enc2utf8(names(uni)))
   dups <-  duplicated(uni, by = mycols)
   uni[, duplicado := as.numeric(dups) | c(tail(dups, -1), FALSE)]
@@ -299,17 +299,17 @@ homologar_arbol <- function(arbol_motivo_legal) {
   #-- Fusión con el total
   unif[, c("N", "duplicado"):=NULL]
   unif2[, c("N"):=NULL]
-  temp <- merge(unif, unif2, by=c("PROPUESTA DE FUSIÓN MOTIVO LEGAL", "PROPUESTA DE FUSIÓN CATEGORIA LEGAL"),
+  temp <- merge(unif, unif2, by=c("PROPUESTA DE FUSION MOTIVO LEGAL", "PROPUESTA DE FUSION CATEGORIA LEGAL"),
                 all.x=T)
-  setnames(temp, c("Grado de daño.x", "Facilidad de prueba.x", "Grado de daño.y", "Facilidad de prueba.y"),
+  setnames(temp, c("Grado de dano.x", "Facilidad de prueba.x", "Grado de dano.y", "Facilidad de prueba.y"),
            c("grado_perjuicio", "facilidad_prueba", "grado", "facilidad"))
   temp[is.na(grado_perjuicio), c("grado_perjuicio", "facilidad_prueba") := list(grado, facilidad)]
   # temp[`PROPUESTA DE FUSIÓN MOTIVO LEGAL` == 'PROBLEMAS EJECUCIÓN CONTRATO' & `PROPUESTA DE FUSIÓN CATEGORIA LEGAL`=="NEGATIVA DEL PROVEEDOR PARA CUMPLIR SU OBLIGACIÓN"]
 
-  arbol_motivo_legal[, c("Grado de daño", "Facilidad de prueba", "...4", "...15"):=NULL]
+  arbol_motivo_legal[, c("Grado de dano", "Facilidad de prueba", "...4", "...15"):=NULL]
   arbol <- merge(arbol_motivo_legal, temp, by=mycols, all.x=T)
   arbol_out <- copy(arbol)
-  arbol[, c("F", "Número", "Inicio", "Término", "presente?", "grado", "facilidad", "ID"):=NULL]
+  arbol[, c("F", "Numero", "Inicio", "Termino", "presente?", "grado", "facilidad", "ID"):=NULL]
 
   return(list(arbol=arbol, arbol_completo=arbol_out))
 }
