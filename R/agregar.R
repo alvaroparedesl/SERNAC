@@ -10,7 +10,7 @@
 #' @param timep tiempo para hacer la agrupación; mensual o semanal
 #' @param prep entrega una tabla lista para ser apilada con otras, sin perder información.
 #' Sólo si `setdiff(bycols, prepIgnore)` tiene largo igual a 1.
-#' @param prepIgnore columna de agrupación que ignorar al preparar los datos
+#' @param prepIgnore columna de agrupación que ignorar al preparar los datos (columna que no será transformada a formato largo y se mantendrá como ancha).
 #' @param fillN cambia NAs por 0 (sólo en N, no en diff).
 #' @param usar_tiempo si es TRUE, se usa la diferencia de tiempo como una de las variables para buscar valores atípicos. Por defecto es TRUE.
 #'
@@ -20,6 +20,7 @@
 #' @examples 1+1
 agregar_datos <- function(df, bycols=c("proveedor_rut", "proveedor_mercado_nombre"),
                    timep="mensual", prep=FALSE, prepIgnore=NULL, fillN=TRUE, usar_tiempo=TRUE) {
+  # TODO: agregar datos sin considerar la ultima observacion????? debiera ser para no alterar la media ni la sd... algo como incluir un parametro que sea "excluir_observados=TRUE"
   if (nrow(df) < 1){
     stop("Datos vacíos??")
   }
@@ -28,8 +29,8 @@ agregar_datos <- function(df, bycols=c("proveedor_rut", "proveedor_mercado_nombr
                 semestral=c("", "", ""))[[timep]]
   tiempo <- list(mensual="months", semanal="weeks", semestral="semester")
   df[, t:=strftime(caso_creacion_fecha, tType[1])]
+  df[, temp:=as.numeric(difftime(caso_cierre_fecha, caso_creacion_fecha, units="days"))] # TODO: definir estas columnas fuera
   if (usar_tiempo) {
-    df[, temp:=as.numeric(difftime(caso_cierre_fecha, caso_creacion_fecha, units="days"))] # TODO: definir estas columnas fuera
     tesub <- df[,
                 list(# tmin=min(temp, na.rm=T),
                   # tmax=max(temp, na.rm=T),
@@ -44,7 +45,6 @@ agregar_datos <- function(df, bycols=c("proveedor_rut", "proveedor_mercado_nombr
 
     df[, c("t", "temp"):=NULL]
   } else {
-    df[, temp:=as.numeric(difftime(caso_cierre_fecha, caso_creacion_fecha, units="days"))] # TODO: definir estas columnas fuera
     tesub <- df[,list(N=.N, prop_acogidos = sum(reclamo_acogido, na.rm=T)/sum(!is.na(reclamo_acogido))),
                 by=c("t", bycols)]
 

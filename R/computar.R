@@ -51,7 +51,13 @@ computar_reclamos <- function(mdatai,
 
   aggs <- lapply(1:length(byClase), function(i) {
     ys <- byClase[1:i]
-    rbindlist(lapply(byCategoria[-which(byCategoria %in% ys)],
+    dupl <- which(byCategoria %in% ys) # evitar duplicar categorias y clases
+    if (length(dupl) > 0 ){
+      variables <- byCategoria[-dupl]
+    } else {
+      variables <- byCategoria
+    }
+    rbindlist(lapply(variables,
                      function(x) agregar_datos(mdata, bycols=c(ys, x), prep=T,
                                         prepIgnore=c(ys), ...)))
   })
