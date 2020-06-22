@@ -10,9 +10,6 @@ extraer_series(obj)
 \arguments{
 \item{obj}{objeto de la clase \code{reclamos_seleccion}.}
 }
-\value{
-
-}
 \description{
 EXtrae las series
 }

@@ -49,7 +49,7 @@ obtener_outliers <- function(x, t_min, t_max, to_data_table=TRUE) {
 #'
 #' @param obj objeto de la clase `reclamos_seleccion`.
 #'
-#' @return
+#' @importFrom data.table rbindlist setnames melt merge.data.table dcast
 #' @export
 #'
 extraer_series <- function(obj) {
@@ -77,8 +77,50 @@ extraer_series <- function(obj) {
     # y1$variables <- apply(mymat, 1, function(x) paste0(na.omit(x), collapse="|"))
   })
   names(ans) <- nxy
-  # xy[up==T & t_observado=="2019-11-15" & posicion == 1 & metrics=="d1N"]
-  obj$series <- ans
+
+  #-------- RECLAMOS EXPORTADOS: originales, con su id
+  # el cruce sólo se hará desde proveedor rut hacia adelante, caso contrario, nada.
+  if ("proveedor_rut" %in% obj$Clases) {
+    nstart <- which(obj$Clases %in% "proveedor_rut")
+    to_export <- names(y)[nstart:length(obj$Clases)]
+    expr1 <- formula(paste0(paste(obj$Clases, collapse=" + "), " + t + up + posicion + clase + rank_id ~ variable"))
+    temp <- lapply(rev(to_export), function(x) {
+      tp <- y[[x]]
+      tp[, clase:=x]
+    })
+    recl1 <- rbindlist(temp, fill=T)[!is.na("proveedor_rut"), c(obj$Clases, "variable", "variable_valor", "t", "up", "posicion", "clase"), with=F]
+    recl1[, rank_id:=1:.N]
+    recl2 <- dcast(recl1, expr1, value.var="variable_valor")
+    extra_vars <- sort(unique(recl1$variable))
+    min_date <- as.POSIXct(paste0(strftime(min(recl2$t), "%Y-%m"), "-01"))
+    expr2 <- formula(paste0(paste(obj$Clases[to_export], collapse=" + "), " + ",
+                            paste(extra_vars, collapse= " + "),
+                            " + t + up + posicion + caso_numero ~ clase"))
+    fusion <- list()
+    for (i in 1:length(to_export)){
+      temp <- obj$original[caso_creacion_fecha >= min_date, ]
+      temp[, t:=as.Date(paste0(strftime(temp$caso_creacion_fecha, "%Y-%m"), "-15"))]
+      x1 <- recl2[clase %in% to_export[i], c(obj$Clases[to_export[1:i]], extra_vars, "t", "up", "posicion", "clase", "rank_id"), with=F]
+      y1 <- temp[!is.na(proveedor_rut) & !is.na(caso_numero), c(obj$Clases[to_export[1:i]], extra_vars, "t", "caso_numero", "proveedor_nombre_fantasia"), with=F] # ,"consumidor_id"
+      x1[is.na(x1)] <- ''
+      y1[is.na(y1)] <- ''
+      temp <- lapply(extra_vars, function(v) {
+        recl <- merge(x1, y1, by=c(obj$Clases[to_export[1:i]], v, "t"), suffixes=c("", ".borrar"))
+      })
+      fusion <- c(fusion, temp)
+    }
+    fusion <- rbindlist(rev(fusion), fill=T)
+    fusion[is.na(fusion)] <- ''
+    fusion[, rank_id:=NULL]
+    fusion <- fusion[, -grep(".borrar", names(fusion)), with=F]  # aquí se ve que se producen duplicados: motivo desconocido
+    fusion <- unique(fusion)  # y aquí "solucionamos" el problema anterior...
+    recls <- dcast(fusion, expr2, value.var="caso_numero")
+    # caso_numero tiene NAs.... por la chucha
+  } else {
+    recls <- NULL
+  }
+
+  obj$series <- list(temporal=ans, reclamos=recls)
   obj$estado$series <- TRUE
   return(obj)
 }
@@ -95,7 +137,7 @@ extraer_series <- function(obj) {
 reportar <- function(dat) {
   if (!"reclamos" %in% class(dat)) stop("Objeto debe ser de la clase reclamos")
 
-  x <- dat$series
+  x <- dat$series$temporal
   mit <- lapply(rev(names(x)), function(y) {
     y1 <- x[[y]]
     y1$clase <- y
@@ -153,6 +195,7 @@ exportar <- function(obj, que='ranking', donde=NULL, ...) {
   mpath <- ifelse(is.null(donde), getwd(), donde)
   ctime <- format(Sys.time(), "%Y-%m-%d_%H%M%S")
 
+  fwrite(obj$series$reclamos, file.path(mpath, paste0(ctime, "_top_ranking_reclamos_caso_numero.csv")), ...)
   if ('ranking' %in% que) {
     fwrite(obj$reporte$tops, file.path(mpath, paste0(ctime, "_top_ranking_formato_ancho.csv")), ...)  # top metricas wide format colapsado
     fwrite(obj$reporte$tops_metrics, file.path(mpath, paste0(ctime, "_top_ranking_formato_largo.csv")), ...)  # top metricas long format
