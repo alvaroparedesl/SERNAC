@@ -93,7 +93,7 @@ extraer_series <- function(obj) {
     recl2 <- dcast(recl1, expr1, value.var="variable_valor")
     extra_vars <- sort(unique(recl1$variable))
     min_date <- as.POSIXct(paste0(strftime(min(recl2$t), "%Y-%m"), "-01"))
-    expr2 <- formula(paste0(paste(obj$Clases[to_export], collapse=" + "), " + ",
+    expr2 <- formula(paste0("proveedor_nombre_fantasia +", paste(obj$Clases[to_export], collapse=" + "), " + ",
                             paste(extra_vars, collapse= " + "),
                             " + t + up + posicion + caso_numero ~ clase"))
     fusion <- list()
@@ -115,6 +115,7 @@ extraer_series <- function(obj) {
     fusion <- fusion[, -grep(".borrar", names(fusion)), with=F]  # aquí se ve que se producen duplicados: motivo desconocido
     fusion <- unique(fusion)  # y aquí "solucionamos" el problema anterior...
     recls <- dcast(fusion, expr2, value.var="caso_numero")
+    setorder(recls, t, -up, posicion)
     # caso_numero tiene NAs.... por la chucha
   } else {
     recls <- NULL
