@@ -44,7 +44,8 @@ shinyPlot <- function(obj) {
     output$categorias <- renderTable({
       (data.frame(Categorias=sort(obj$Categorias)))
     })
-    output$ruts <- renderDataTable({
+
+    getRuts <- reactive({
       mruts <- c()
       if ('proveedor_rut' %in% names(obj$reporte$tops)){
         mruts <- unique(c(obj$reporte$tops$proveedor_rut, mruts))
@@ -52,11 +53,15 @@ shinyPlot <- function(obj) {
       if ('proveedor_rut' %in% obj$reporte$tops$variable){
         mruts <- unique(c(obj$reporte$tops[variable=='proveedor_rut', variable_valor], mruts))
       }
-      datatable(buscar_ruts(sort(mruts), obj), options=list(pageLength=5))
+      datatable(buscar_ruts(sort(mruts), obj), options=list(pageLength=3,
+                                                            lengthMenu=c(1, 3, 5, 10)))
     })
-    output$ranking <- renderDataTable({
-      datatable(obj$reporte$tops)
-    })
+
+    output$ruts1 <- renderDataTable(getRuts())
+    output$ruts2 <- renderDataTable(getRuts())
+    # output$ranking <- renderDataTable({
+    #   datatable(obj$reporte$tops)
+    # })
     output$plotl <- renderPlotly({
       fechas <- input$dates
       clases <- input$class
@@ -90,7 +95,7 @@ shinyPlot <- function(obj) {
       clases <- input$class
       sele <- obj$reporte$tops[clase %in% clases & t_observado %in% as.Date(fechas) & up == TRUE]
       mdat <- obj$reclamos[[clases]]$datos[metrics=='N' & t <= as.Date(fechas)]
-      cols <- c(obj$Clases[1:which(clases == names(obj$Clases))], 'variable_valor', 'variable')
+      cols <- c(obj$Clases[1:which(clases == names(obj$Clases))], 'variable', 'variable_valor')
       what <- unlist(sele[, do.call(paste, c(.SD, sep=" | ")), .SDcols=cols])
       what <- factor(what, ordered=T)
       mdat[, supid:=factor(do.call(paste, c(.SD, sep=" | ")), levels=what), .SDcols=cols]
@@ -102,14 +107,14 @@ shinyPlot <- function(obj) {
                     colors = colorRampPalette(c("#a50026", "#ffff33", "#1f78b4"))(nrow(sele)) ) #"Paired")
       layout(pl, title = sprintf("Ranking ascendente de alertas (top %s)", nrow(sele)),
              xaxis = list(range = xrange, title = "Tiempo"),
-             yaxis = list(range = yrange, title = "Número (estandarizado)"))
+             yaxis = list(range = yrange, title = "Número de reclamos (estandarizado)"))
     })
     output$rankplotl <- renderPlotly({
       fechas <- input$dates
       clases <- input$class
       sele <- obj$reporte$tops[clase %in% clases & t_observado %in% as.Date(fechas) & up == FALSE]
       mdat <- obj$reclamos[[clases]]$datos[metrics=='N' & t <= as.Date(fechas)]
-      cols <- c(obj$Clases[1:which(clases == names(obj$Clases))], 'variable_valor', 'variable')
+      cols <- c(obj$Clases[1:which(clases == names(obj$Clases))], 'variable', 'variable_valor')
       what <- unlist(sele[, do.call(paste, c(.SD, sep=" | ")), .SDcols=cols])
       what <- factor(what, ordered=T)
       mdat[, supid:=factor(do.call(paste, c(.SD, sep=" | ")), levels=what), .SDcols=cols]
@@ -121,7 +126,7 @@ shinyPlot <- function(obj) {
                     colors = colorRampPalette(c("#a50026", "#ffff33", "#1f78b4"))(nrow(sele)) ) #"Paired")
       layout(pl, title = sprintf("Ranking descendente de alertas (top %s)", nrow(sele)),
              xaxis = list(range = xrange, title = "Tiempo"),
-             yaxis = list(range = yrange, title = "Número (estandarizado)"))
+             yaxis = list(range = yrange, title = "Número de reclamos (estandarizado)"))
     })
   }
 
@@ -144,14 +149,20 @@ shinyPlot <- function(obj) {
         selected = 1
       ),
       sidebarMenu(
-        menuItem("Ranking", tabName = "general", icon = icon("dashboard")),
-        menuItem("Detalle alertas", tabName = "detalle", icon = icon("th"))
+        menuItem("Ranking", tabName = "general", icon = icon("chart-line")),
+        menuItem("Detalle alertas", tabName = "detalle", icon = icon("info-circle"))
       )
     ),
 
     dashboardBody(
       tabItems(
         tabItem(tabName = "general",
+          fluidRow(
+            box(
+              title="Buscador de ruts", collapsible=T, status = "warning",
+              dataTableOutput('ruts1'), width=12
+            )
+          ),
           fluidRow(
             box(
               title="Alertas ascendentes", status='danger', solidHeader = T, collapsible = F, # height=300,
@@ -183,12 +194,12 @@ shinyPlot <- function(obj) {
           ),
 
           fluidRow(
-            column(6,
+            column(6, h3("Clases y categorías"),
                    box(tableOutput('clases')),
                    box(tableOutput('categorias'))
             ),
-            column(6,
-                   box(dataTableOutput('ruts'), width=6)
+            column(6, h3("Buscador de ruts"),
+                   box(dataTableOutput('ruts2'), width=12)
             )
           ),
 
