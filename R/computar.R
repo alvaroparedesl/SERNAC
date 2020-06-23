@@ -81,7 +81,7 @@ computar_reclamos <- function(mdatai,
   ans2 <- lapply(2:length(ans), function(i) {
     gt <- ans[[i]]
     temp <- merge(gt$datos, limit, by=c("variable_valor", "variable", "metrics"), all.x=T, sort=F)
-    temp[, outlier_external:=obtener_outliers(values_norm, lower_threshold, upper_threshold)]
+    temp[, is_outlier_external:=obtener_outliers(values_norm, lower_threshold, upper_threshold)]
     temp[, c("lower_threshold", "upper_threshold"):=NULL]
     return(list(datos=temp, limites=gt$limites))
   })
@@ -148,7 +148,7 @@ generar_metricas <- function(x, cuantiles, IQR, coef, byClase, exprs1, metricsN)
   form1 <- paste0(c(svarP, "metrics ~ metric"), collapse= " + ")
   mtable <- dcast(limites[metric %in% c("lower_threshold", "upper_threshold")], form1, value.var="values")
   merged <- merge(aggsM, mtable, by=c(svarP, "metrics"), all.x=T, sort=F)
-  merged[, outlier_internal:=obtener_outliers(values, lower_threshold, upper_threshold)]
+  merged[, is_outlier_internal:=obtener_outliers(values, lower_threshold, upper_threshold)]
   merged[, c("lower_threshold", "upper_threshold"):=NULL]
   return(list(datos=merged, limites=limites))
 }

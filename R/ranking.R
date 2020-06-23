@@ -20,7 +20,7 @@ seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, ...) {
 
   out_ranks <- lapply(1:length(clases), function(i) {
     ys <- clases[1:i]
-    y <- selec[[names(clases)[i]]]$datos[outlier_internal==T | outlier_external==T]
+    y <- selec[[names(clases)[i]]]$datos[is_outlier_internal==T | is_outlier_external==T]
     rankear(y, ys, ...)
   })
   names(out_ranks) <- names(clases)
@@ -35,9 +35,9 @@ seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, ...) {
     # y1 <- y[outlier_internal_rank <= tope]
     # comparar contra:
     y2 <- merge(y1, selec[[x]]$datos, by=ys, all.x=T, order=F)
-    exp1 <- formula(paste0(paste0(ys, collapse=" + "), "+ outlier_internal.x + outlier_external.x + outlier_internal_rank + outlier_rank + up + metric_cat ~ metrics"))
+    exp1 <- formula(paste0(paste0(ys, collapse=" + "), "+ outlier_internal_N + outlier_external_N + outlier_internal_rank + outlier_rank + up + metric_cat ~ metrics"))
     exp2 <- formula(paste0(paste0(ys, collapse=" + "), " ~ metrics"))
-    y3 <- dcast(y2[outlier_internal.y==T], exp1, value.var="p")
+    y3 <- dcast(y2[is_outlier_internal==T], exp1, value.var="p")
     mn <- dcast(selec[[x]]$datos[metrics=="N"], exp2, value.var="values")
     y4 <- merge(y3, mn, by=ys, all.x=T, order=F)
     setnames(y4, c("N.x", "N.y"), c("N", "N_registros"))
@@ -87,17 +87,17 @@ rankear <- function(dt, col, t_observado='max') {
   dt[, up:=ifelse(sum(values >= 0) > .N/2, TRUE, FALSE), by=c(col, "variable_valor", "variable", "metric_cat", "t")]
 
   if (t_observado[1] == 'max') {
-    my_outs <- dt[t %in% max(t), list(outlier_internal=sum(outlier_internal, na.rm=T), outlier_external=sum(outlier_external, na.rm=T)),
+    my_outs <- dt[t %in% max(t), list(outlier_internal_N=sum(is_outlier_internal, na.rm=T), outlier_external_N=sum(is_outlier_external, na.rm=T)),
                   by=c(col, "variable_valor", "variable", "t", "up", "metric_cat")]
   } else {
     ts <- as.Date(t_observado)
-    my_outs <- dt[t %in% ts, list(outlier_internal=sum(outlier_internal, na.rm=T), outlier_external=sum(outlier_external, na.rm=T)),
+    my_outs <- dt[t %in% ts, list(outlier_internal_N=sum(is_outlier_internal, na.rm=T), outlier_external_N=sum(is_outlier_external, na.rm=T)),
                   by=c(col, "variable_valor", "variable", "t", "up", "metric_cat")]
   }
 
-  my_outs[, c("outlier_internal_rank", "outlier_external_rank", "outlier_rank"):=list(frankv(-outlier_internal, na.last="keep"),
-                                                                                      frankv(-outlier_external, na.last="keep"),
-                                                                                      frankv(-c(outlier_internal + outlier_external), na.last="keep")),
+  my_outs[, c("outlier_internal_rank", "outlier_external_rank", "outlier_rank"):=list(frankv(-outlier_internal_N, na.last="keep"),
+                                                                                      frankv(-outlier_external_N, na.last="keep"),
+                                                                                      frankv(-c(outlier_internal_N + outlier_external_N), na.last="keep")),
           by=c("metric_cat", "up", "t")]
   setorder(my_outs, outlier_rank)
   return(my_outs)
