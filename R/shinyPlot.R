@@ -5,7 +5,7 @@
 #'
 #' @importFrom plotly renderPlotly plotlyOutput plot_ly layout
 #' @importFrom DT datatable renderDataTable dataTableOutput
-#' @importFrom shiny shinyApp runApp fluidRow column tableOutput renderTable selectizeInput selectInput renderUI HTML htmlOutput icon
+#' @importFrom shiny shinyApp runApp fluidRow column tableOutput renderTable selectizeInput selectInput renderUI HTML htmlOutput icon h3
 #' @import shinydashboard
 #' @export
 #'
