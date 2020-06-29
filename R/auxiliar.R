@@ -95,13 +95,15 @@ extraer_series <- function(obj) {
     min_date <- as.POSIXct(paste0(strftime(min(recl2$t), "%Y-%m"), "-01"))
     expr2 <- formula(paste0("proveedor_nombre_fantasia +", paste(obj$Clases[to_export], collapse=" + "), " + ",
                             paste(extra_vars, collapse= " + "),
-                            " + t + up + posicion + caso_numero ~ clase"))
+                            " + t + up + posicion + caso_numero + reclamo_descripcion ~ clase"))
     fusion <- list()
     for (i in 1:length(to_export)){
       temp <- obj$original[caso_creacion_fecha >= min_date, ]
       temp[, t:=as.Date(paste0(strftime(temp$caso_creacion_fecha, "%Y-%m"), "-15"))]
       x1 <- recl2[clase %in% to_export[i], c(obj$Clases[to_export[1:i]], extra_vars, "t", "up", "posicion", "clase", "rank_id"), with=F]
-      y1 <- temp[!is.na(proveedor_rut) & !is.na(caso_numero), c(obj$Clases[to_export[1:i]], extra_vars, "t", "caso_numero", "proveedor_nombre_fantasia"), with=F] # ,"consumidor_id"
+      y1 <- temp[!is.na(proveedor_rut) & !is.na(caso_numero),
+                 c("proveedor_nombre_fantasia", obj$Clases[to_export[1:i]], extra_vars, "t", "caso_numero", "reclamo_descripcion"),
+                 with=F]
       x1[is.na(x1)] <- ''
       y1[is.na(y1)] <- ''
       temp <- lapply(extra_vars, function(v) {
@@ -115,7 +117,16 @@ extraer_series <- function(obj) {
     fusion <- fusion[, -grep(".borrar", names(fusion)), with=F]  # aquí se ve que se producen duplicados: motivo desconocido
     fusion <- unique(fusion)  # y aquí "solucionamos" el problema anterior...
     recls <- dcast(fusion, expr2, value.var="caso_numero")
-    setorder(recls, t, -up, posicion)
+    recls <- merge(recls, obj$original[, c("caso_numero", "cierre_corto"), with=F], by="caso_numero", suffixes=c("", "_caso"))
+    if ("cierre_corto_caso" %in% names(recls)){
+      setnames(recls, "up", "reclamo_ascendente")
+    } else {
+      setnames(recls, c("up", "cierra_corto"), c("reclamo_ascendente", "cierre_corto_caso"))
+    }
+    setorder(recls, t, -reclamo_ascendente, posicion)
+    setcolorder(recls, c("proveedor_nombre_fantasia", obj$Clases[to_export], extra_vars, "t",
+                         "reclamo_ascendente", "posicion", "caso_numero", names(obj$Clases[to_export]),
+                         "cierre_corto_caso", "reclamo_descripcion"))
     # caso_numero tiene NAs.... por la chucha
   } else {
     recls <- NULL

@@ -5,7 +5,7 @@
 \alias{rankear}
 \title{Generar ranking}
 \usage{
-rankear(dt, col, t_observado = "max")
+rankear(dt, col, t_observado = "max", puntaje = FALSE)
 }
 \arguments{
 \item{dt}{data.table.}
@@ -13,6 +13,9 @@ rankear(dt, col, t_observado = "max")
 \item{col}{nombre de la columna a evaluar.}
 
 \item{t_observado}{tiempo en el cual se evalua el ranking.}
+
+\item{puntaje}{si es TRUE, se usará el un puntaje (suma de los percentiles) para armar el ranking y no el número de métricas que caen fuera del rango intercuantil definido.
+Por defecto es FALSE.}
 }
 \description{
 Generar ranking

@@ -10,6 +10,9 @@ norm_rank(x)
 \arguments{
 \item{x}{un vector}
 }
+\value{
+una lista de valores centrados y escalados y del cuantil al que corresponde cada observación.
+}
 \description{
 Ranking normalizado
 }

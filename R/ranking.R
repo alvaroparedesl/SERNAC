@@ -73,12 +73,14 @@ seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, ...) {
 #' @param dt data.table.
 #' @param col nombre de la columna a evaluar.
 #' @param t_observado tiempo en el cual se evalua el ranking.
+#' @param puntaje si es TRUE, se usará el un puntaje (suma de los percentiles) para armar el ranking y no el número de métricas que caen fuera del rango intercuantil definido.
+#' Por defecto es FALSE.
 #'
 #' @importFrom data.table frankv
 #' @export
 #'
 #' @examples 1+1
-rankear <- function(dt, col, t_observado='max') {
+rankear <- function(dt, col, t_observado='max', puntaje=FALSE) {
   # metrics_ <- as.character(unique(dt$metrics))
   # metricsL <- list(t=metrics_[grep("t", metrics_)], N=metrics_[grep("N", metrics_)])
   dt[, metric_cat:=ifelse(grepl("t", metrics), "tiempo", "conteo")]
@@ -87,19 +89,28 @@ rankear <- function(dt, col, t_observado='max') {
   dt[, up:=ifelse(sum(values >= 0) > .N/2, TRUE, FALSE), by=c(col, "variable_valor", "variable", "metric_cat", "t")]
 
   if (t_observado[1] == 'max') {
-    my_outs <- dt[t %in% max(t), list(outlier_internal_N=sum(is_outlier_internal, na.rm=T), outlier_external_N=sum(is_outlier_external, na.rm=T)),
-                  by=c(col, "variable_valor", "variable", "t", "up", "metric_cat")]
+    expr1 <- "t %in% max(t)"
   } else {
     ts <- as.Date(t_observado)
-    my_outs <- dt[t %in% ts, list(outlier_internal_N=sum(is_outlier_internal, na.rm=T), outlier_external_N=sum(is_outlier_external, na.rm=T)),
-                  by=c(col, "variable_valor", "variable", "t", "up", "metric_cat")]
+    expr1 <- "t %in% ts"
   }
+  my_outs <- dt[eval(parse(text=expr1)), list(outlier_internal_N=sum(is_outlier_internal, na.rm=T),
+                                              outlier_external_N=sum(is_outlier_external, na.rm=T),
+                                              outlier_score=sum(p, na.rm=T)),
+                by=c(col, "variable_valor", "variable", "t", "up", "metric_cat")]
 
-  my_outs[, c("outlier_internal_rank", "outlier_external_rank", "outlier_rank"):=list(frankv(-outlier_internal_N, na.last="keep"),
-                                                                                      frankv(-outlier_external_N, na.last="keep"),
-                                                                                      frankv(-c(outlier_internal_N + outlier_external_N), na.last="keep")),
+  outliers_vars <- c("outlier_internal_rank", "outlier_external_rank", "outlier_rank", "outlier_rank_score")
+  my_outs[, (outliers_vars):=list(frankv(-outlier_internal_N, na.last="keep"),
+                                  frankv(-outlier_external_N, na.last="keep"),
+                                  frankv(-c(outlier_internal_N + outlier_external_N), na.last="keep"),
+                                  frankv(-outlier_score, na.last="keep")),
           by=c("metric_cat", "up", "t")]
-  setorder(my_outs, outlier_rank)
+
+  if (puntaje) {
+    setorder(my_outs, outlier_rank_score)
+  } else {
+    setorder(my_outs, outlier_rank)
+  }
   return(my_outs)
 }
 
@@ -108,13 +119,16 @@ rankear <- function(dt, col, t_observado='max') {
 #' @title Ranking normalizado
 #'
 #' @param x un vector
+
+#' @return una lista de valores centrados y escalados y del cuantil al que corresponde cada observación.
 #'
 #' @export
 #' @importFrom data.table frank
 #'
 #' @examples norm_rank(1:10)
 norm_rank <- function(x) {
-  list(scale(x, center=T, scale=T)[, 1], (frank(x, na.last="keep")/sum(!is.na(x))) )
+  list(scale(x, center=T, scale=T)[, 1],
+       frank(x, na.last="keep")/sum(!is.na(x)) )  # percentil al que pertenece la observación.
 }
 
 
