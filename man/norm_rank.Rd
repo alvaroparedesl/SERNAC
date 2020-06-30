@@ -11,7 +11,7 @@ norm_rank(x)
 \item{x}{un vector}
 }
 \value{
-una lista de valores centrados y escalados y del cuantil al que corresponde cada observación.
+una lista de valores centrados y escalados, del cuantil al que corresponde cada observación y del cuantil al cual pertenecen con respecto a los valores escalados.
 }
 \description{
 Ranking normalizado

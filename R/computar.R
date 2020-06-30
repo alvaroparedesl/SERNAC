@@ -81,8 +81,11 @@ computar_reclamos <- function(mdatai,
   ans2 <- lapply(2:length(ans), function(i) {
     gt <- ans[[i]]
     temp <- merge(gt$datos, limit, by=c("variable_valor", "variable", "metrics"), all.x=T, sort=F)
+    temp <- merge(temp, ans[[1]]$datos, by=c("variable_valor", "variable", "metrics", "t"),
+                  all.x=T, sort=F, suffixes = c("", "_basal"))
     temp[, is_outlier_external:=obtener_outliers(values_norm, lower_threshold, upper_threshold)]
-    temp[, c("lower_threshold", "upper_threshold"):=NULL]
+    temp[, c("is_outlier_internal_basal"):=NULL]
+    # temp[, c("lower_threshold", "upper_threshold"):=NULL]
     return(list(datos=temp, limites=gt$limites))
   })
   names(ans2) <- names(byClase)

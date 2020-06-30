@@ -5,7 +5,7 @@
 \alias{seleccionar_ranking}
 \title{Seleccionar por ranking}
 \usage{
-seleccionar_ranking(dat, topn, nmin, reporte = TRUE, ...)
+seleccionar_ranking(dat, topn, nmin, reporte = TRUE, tipo = "N", ...)
 }
 \arguments{
 \item{dat}{objeto de la clase \code{reclamos}.}
@@ -17,10 +17,28 @@ dependiendo de si existen empates o el número final de registros.}
 
 \item{reporte}{si es TRUE, imprime un reporte resumen.}
 
+\item{tipo}{tipo de ranking a usarse. Las opciones son \code{N} (número), \code{puntaje} o \code{mixto}. Por defecto es \code{N}. Ver la sección \code{Details} para mayor información.}
+
 \item{...}{argumentos extras pasados a \link{rankear}.}
 }
 \description{
 Seleccionar por ranking
+}
+\details{
+Todos los tipos de rankings se calculan en base a las métricas (el número de reclamos, la proporción de acogida,
+los lags definidos y el tiempo de respuesta, en el caso de ser incorporado), ya sea por su número o por su percentil.\cr
+Para \code{tipo} \code{N} (la opción que se ha utilizado desde el inicio), el orden del ranking se calcula en base al número de métricas que caen fuera del rango intercuantil definido,
+sumando el número de ellas de manera interna (dentro de la agrupación Clase + Categoría) y de manera externa (usando datos escalados y centrados, usando como agrupación basal, sólo Categoría).
+Debido al ruido que se produce al usar el ranking externo, el ranking final se obtiene ordenando por el ranking interno, luego por el ranking interno y externo, y finalmente por el número
+de reclamos del periodo \code{t} (donde a mayor número, se favorece el ranking).
+\cr
+Para \code{tipo} \code{puntaje} se usará la suma de los percentiles para armar el ranking y no el número de métricas que caen fuera del rango intercuantil definido (se suman los percentiles internos y externos).
+Se suman el valor del percentil de todas las métricas presentes (sean o no atípicas), pero se consideran en el ranking final sólo aquellas que fueron marcadas inicialmente
+(caso contrario, toda observación tendría siempre, una posición en el ranking). Se hace la diferenciación entre métricas catalogadas de ascendentes/descendentes;
+para las ascendentes, se hace la suma simple de los percentiles de las métricas que tienen un cambio positivo y para las descendentes, la suma de \code{(1- p)} de los percentiles de las métricas que tienen
+un cambio negativo.\cr
+Por último, \code{tipo} \code{mixto} usa una combinación de ambas formas para armar el ranking final. Cada ranking es construido de manera independiente, y posteriormente la posición de cada uno
+es sumada y el ranking final es recalculado (de menor a mayor valor).
 }
 \examples{
 1+1

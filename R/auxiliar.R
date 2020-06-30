@@ -65,8 +65,8 @@ extraer_series <- function(obj) {
     cols <- names(y1)[1:(which(names(y1) == "variable") + 1)]
     vars <- names(y1)[(which(names(y1) == "metric_cat") + 1): (length(names(y1)) - 2)]
 
-    y2 <- melt(y1, id.vars=c(cols, "up", "metric_cat", "posicion", "N_registros"),
-               measure.vars = vars, variable.name = "metrics", value.name="cuantil")[!is.na(cuantil)]
+    y2 <- suppressWarnings(melt(y1, id.vars=c(cols, "up", "metric_cat", "posicion", "N_registros"),
+                                measure.vars = vars, variable.name = "metrics", value.name="cuantil")[!is.na(cuantil)])
     setnames(y2, "t", "t_observado")
 
     xy <- merge(x1, y2, by=c(cols[-length(cols)], "metrics"), sort=F)
