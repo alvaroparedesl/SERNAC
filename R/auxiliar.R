@@ -150,10 +150,14 @@ reportar <- function(dat) {
   if (!"reclamos" %in% class(dat)) stop("Objeto debe ser de la clase reclamos")
 
   x <- dat$series$temporal
+  x2 <- dat$ranking$seleccion
   mit <- lapply(rev(names(x)), function(y) {
     y1 <- x[[y]]
+    y2 <- copy(x2[[y]])
+    setnames(y2, "t", "t_observado")
+    bym <-  intersect(names(y1), names(y2))
     y1$clase <- y
-    y1
+    merge(y1, y2[, c(bym, grep("^outlier_", names(y2), perl=T, value=T)), with=F], by=bym, all.x=T, sort=F)
   })
   todo <- rbindlist(mit, use.names=T, fill=T)
   setorder(todo, t_observado, clase, posicion, up, t)

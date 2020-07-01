@@ -18,6 +18,7 @@ shinyPlot <- function(obj) {
   server <- function(input, output) {
 
     output$caption <- renderUI({
+      # fechas <- "2020-04-15"; clases <- "industria"; pos <- 1; obj <- outt
       fechas <- input$dates
       clases <- input$class
       pos <- input$rank_pos
@@ -25,22 +26,37 @@ shinyPlot <- function(obj) {
       mdat <- db$serie[posicion %in% pos & clase %in% clases & t_observado %in% as.Date(fechas)]
       ups <- c()
       dows <- c()
+      ups_score <- NA
+      dows_score <- NA
       for (i in names(obj$Clases)) {
-        tp <- unique(mdat[up == T, obj$Clases[i], with=F])
+        tp <- unique(mdat[up == T, c(obj$Clases[i], 'outlier_scorein', 'outlier_scoreex'), with=F])
         if (!is.na(tp)[1]){
-          ups <- c(ups,   sprintf("<b>%s</b> [<i>%s</i>]: %s", i, obj$Clases[i], paste0(tp, collapse=", ")))
+          ups <- c(ups,   sprintf("<b>%s</b> [<i>%s</i>]: %s", i, obj$Clases[i], paste0(tp[, 1], collapse=", ")))
+          if (is.na(ups_score)[1]) {
+            ups_score <- round(unlist(c(tp[, 2], tp[, 3])), 3)
+          }
         }
-        tp <- unique(mdat[up == F, obj$Clases[i], with=F])
+        tp <- unique(mdat[up == F, c(obj$Clases[i], 'outlier_scorein', 'outlier_scoreex'), with=F])
         if (!is.na(tp)[1]){
-          dows <- c(dows, sprintf("<b>%s</b> [<i>%s</i>]: %s", i, obj$Clases[i], paste0(tp, collapse=", ")))
+          dows <- c(dows, sprintf("<b>%s</b> [<i>%s</i>]: %s", i, obj$Clases[i], paste0(tp[, 1], collapse=", ")))
+          if (is.na(dows_score)[1]) {
+            dows_score <- round(unlist(c(tp[, 2], tp[, 3])), 3)
+          }
         }
       }
-      out <- paste("<b><ins>Alertas ascendentes:</b></ins>", paste0(ups, collapse=" || "), "<b><ins>Alertas descendentes:</b></ins>", paste0(dows, collapse=" || "), sep="<br/>")
+
+      out <- paste(sprintf("<b><ins>Alertas ascendentes</ins> [puntaje interno: %s| puntaje externo %s]:</b>", ups_score[1], ups_score[2]),
+                   paste0(ups, collapse=" || "),
+                   sprintf("<b><ins>Alertas descendentes</ins> [puntaje interno: %s| puntaje externo %s]:</b>", dows_score[1], dows_score[2]),
+                   paste0(dows, collapse=" || "),
+                   sep="<br/>")
       HTML(out)
     })
+
     output$clases <- renderTable({
       (data.frame(Nombre=names(obj$Clases), Clase=obj$Clases))
     },striped=T, bordered=T, align='c')
+
     output$categorias <- renderTable({
       (data.frame(Categorias=sort(obj$Categorias)))
     })
