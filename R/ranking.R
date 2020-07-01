@@ -41,12 +41,6 @@ seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, tipo="N", ...) {
   })
   names(out_ranks) <- names(clases)
 
-  # if (puntaje) {
-  #   setorder(my_outs, outlier_rank_score)
-  # } else {
-  #   setorder(my_outs, outlier_rank)
-  # }
-
   seleccion <- lapply(1:length(clases), function(i) {
     x <- names(clases)[i]
     ys <- c(clases[1:i], "variable_valor", "variable", "t")
@@ -64,7 +58,7 @@ seleccionar_ranking <- function(dat, topn, nmin, reporte=TRUE, tipo="N", ...) {
     y4 <- merge(y3, mn, by=ys, all.x=T, order=F)
     setnames(y4, c("N.x", "N.y"), c("N", "N_registros"))
     switch(tipo,
-      N = setorder(y4, outlier_internal_rank, outlier_rank, -N_registros),
+      N = setorder(y4, outlier_internal_rank, outlier_external_rank, -N_registros),
       puntaje = setorder(y4, outlier_rank_score, -N_registros),
       mixto = setorder(y4, outlier_rank_mixto, -N_registros)
     )
