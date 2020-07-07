@@ -15,7 +15,7 @@ shinyPlot <- function(obj) {
   ip <- system("ipconfig", intern=TRUE)
   port <- 6742
 
-  server <- function(input, output) {
+  server <- function(input, output, session) {
 
     output$caption <- renderUI({
       # fechas <- "2020-04-15"; clases <- "industria"; pos <- 1; obj <- outt

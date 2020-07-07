@@ -395,18 +395,29 @@ depurar_ruts <- function(db, tolerancia=20, criterio='reciente'){
 #' Se recomienda utilizarlo sólo cuando se esté con certeza de que los valores no cambiarán. Por defecto es FALSE.
 #' @param ... base o bases de datos a agregar, previamente homologadas con \link{homologar_db}.
 #'
-#'#' @importFrom data.table rbindlist
+#'#' @importFrom data.table rbindlist duplicated setorder
 #' @export
 #'
 consolidar_db <- function(..., db, grabar=FALSE){
   nuevos <- list(...)
+  todos <- c(list(db), nuevos)
+  todos <- lapply(1:length(todos), function(i) todos[[i]][, numero_db:=i])
   if (is.list(db)){
-    ans <- rbindlist(c(list(db), nuevos), use.names=T, fill=T)
+    ans <- rbindlist(todos, use.names=T, fill=T)
   }
+  setorder(ans, caso_creacion_fecha)
+  ans[, duplicados:=duplicated(caso_numero)]
+  dupl <- unlist(unique(ans[!is.na(caso_numero) & duplicados, "caso_numero"]))
+  if (length(dupl) > 0) {
+    preservar <- ans[caso_numero %in% dupl, list(numero_db=which.max(numero_db)), by=caso_numero]
+    ans <- rbindlist(list(ans[!caso_numero %in% preservar$caso_numero, ], ans[caso_numero %in% preservar$caso_numero & numero_db %in% preservar$numero_db, ]))
+    setorder(ans, caso_creacion_fecha)
+  }
+  ans[, c("duplicados", "numero_db"):=NULL]
   if (grabar){
     print('No graba')
   }
   return(ans)
 }
-
+# data.table(caso_numero=c(1:10, 8:10), numero_db=c(rep(1, 10), 2, 2, 2))
 # guardar_db <- function(x)

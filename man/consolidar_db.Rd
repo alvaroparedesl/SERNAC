@@ -10,7 +10,7 @@ consolidar_db(..., db, grabar = FALSE)
 \arguments{
 \item{...}{base o bases de datos a agregar, previamente homologadas con \link{homologar_db}.
 
-#' @importFrom data.table rbindlist}
+#' @importFrom data.table rbindlist duplicated setorder}
 
 \item{db}{db previamente homologada con \link{homologar_db}.}
 
