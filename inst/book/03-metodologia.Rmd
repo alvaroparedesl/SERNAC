@@ -1,0 +1,171 @@
+# Metodología
+
+A continuación, una breve descripción metodológica del funcionamiento de la librería.
+
+## Agrupación
+
+Es importante comprender como se agrupan los datos y como se construye. Existen dos formas de agrupar los datos; por *Clase* y *Categoría*. Ambas formas de agrupamiento hacen uso de diferentes columnas que vienen en la base de datos, y que el usuario puede cambiar y definir según las necesidades. Adicionalmente a esto, el agrupamiento se hace también por la unidad de tiempo definida por el usuario (usualmente mes).
+
+Definiendo:
+
+1. Las *Clases* son las columnas que definen una agrupación jerarquíca y acumulativa, donde el orden es importante.
+2. Las *Categorías* con columnas que definen una agrupación sin jerarquía, y donde el orden no importa.
+
+A modo de ejemplo, actualmente para *Clase* se usan las columnas `proveedor_mercado_nombre`, `proveedor_mercado_categoria_nombre`, `proveedor_rut` y `mercado_tipo_producto_nombre` (en dicho orden). Por otro lado, para las *Categorías* se utiliza `cierre_corte` y `motivo_legal_descripcion`. 
+
+En una primera instancia, los reclamos serán agrupados siempre por la primera columna de la *Clase*, en este caso, `proveedor_mercado_nombre`; posteriormente, se agrupan también por las *Categorías* (`cierre_corte` y `motivo_legal_descripcion`). Es decir, para esta primera instancia, tendremos el número de reclamos agrupados por mes, según `proveedor_mercado_nombre` y `cierre_corto`, y `proveedor_mercado_nombre` y `motivo_legal_descripcion`.
+
+En una segunda instancia, los reclamos serán agrupados siempre por las dos primeras columnas de la *Clase*, en este caso, `proveedor_mercado_nombre` y `proveedor_mercado_categoria_nombre`. Como las *Categorías* se mantienen, en esta iteración se obtienen el número de reclamos agrupados por mes según `proveedor_mercado_nombre`, `proveedor_mercado_categoria_nombre` y `cierre_corto`, y `proveedor_mercado_nombre`, `proveedor_mercado_categoria_nombre` y `motivo_legal_descripcion`.
+
+Este proceso se repite hasta agotar todas las columnas dentro de la *Clase*. Adicionalmente, se calcula una agrupación especial (agrupación de base o basal), que considera un agrupamiento solo por la *Categoría*. Es decir, la agrupación agrupa (una única vez) el número de reclamos por la unidad de tiempo (mes en este ejemplo) según `cierre_corto` y `motivo_legal_descripcion`. El objetivo de esto, es también comparar con respecto a como se mueve cada *Categoría* de manera general, sin ningún agrupamiento por *Clase*. 
+
+Específicamente, los pasos son los siguientes:
+
+1. Agrupar por mes/semana, usando `caso_creacion_fecha`.
+2. Se cuentan agrupadamente, el número de reclamos por las *Clases* y *Categorías* definidas por el usuario. Adicionalmente se cuentan agrupadamente los reclamos por *Categoría* solamente (agrupación basal).
+    a. También se calcula la proporción de reclamos acogidos vs los no acogidos, usando `cierre_corto`.
+    b. Si es definido por el usuario, se calcula el promedio y la desviación estándar del tiempo de respuesta del proveedor (`caso_cierre_fecha` - `caso_creacion_fecha`).
+3. Una nueva fecha es asignada, para el caso mensual, el 15 del mes correspondiente (es necesario mantener el formato de fecha dentro del programa).
+4. Se revisa la serie y se completan las fechas faltantes (periodos en que no hubieron reclamos). Para el número de reclamos, se rellena con 0s, para los otros cálculos, se mantiene el valor faltante (`NA`).
+5. Se ordena la serie y se retornan las agrupaciones pertinentes.
+
+### Ejemplo
+
+En este ejemplo se definen las *Clases* mencionadas anteriormente. Es importante fijarse en el orden y que para cada clase se debe incluir un nombre corto (sin espacios, ni carácteres latinos); en este ejemplo, dichos nombres corresponden a `mercado`, `industria`, `proveedor` y `producto`.
+
+```{r eval=FALSE}
+Clases <- c(mercado="proveedor_mercado_nombre",
+            industria="proveedor_mercado_categoria_nombre", # proveedor_mercado_nombre va antes
+            proveedor="proveedor_rut",
+            producto="mercado_tipo_producto_nombre")
+```
+
+Y luego, se calculan los reclamos con el siguiente código:
+
+```{r eval=FALSE}
+outt <- computar_reclamos(dbfM[estado_caso_nombre=="CERRADO"],
+                          byCategoria=c("cierre_corto", 
+                                        "motivo_legal_descripcion"),
+                          byClase=Clases,
+                          lags=c(1:6, 12, 24), 
+                          cuantiles=c(.25, .75), # c(0, .25, .5, .75, 1), 
+                          IQR=c(.25, .75),
+                          coef=1.5,
+                          n_min=50,
+                          usar_tiempo=F,
+                          rango_fechas = c("2016-01-01", NA) ) # caso_creacion_fecha
+```
+
+* `dbfM` es la base de datos previamente homologada. 
+* `byCategoria` contiene las *Categorías* que se usarán (en este caso son las mencionadas anteriormente); a diferencia de las *Clases* no es necesario darle un nombre corto. 
+* `lags` se definen las unidades de tiempo a mirar hacia atrás y en este caso, se está mirand a 1, 2, 3, 4, 5, 6, 12 y 24 meses. 
+* `cuantiles` e `IQR` definene qué cuantiles calcular y cuál será el límite del rango intercuantil (min, max) respectivamente. `IQR` debe estar presente en `cuantiles`, o sea producirá un error.
+* `coef` corresponde a la máxima desviación con respecto a `IQR`(ver \@ref(rango-intercuantil) para más detalles).
+* `n_min` define el número mínimo de observaciones por proveedor (`proveedor_rut`). Caso de ser menor, dichas observaciones no se toman en cuenta (se elimina el proveedor).
+* `usar_tiempo` define si se desea utilizar el tiempo de respuesta del proveedor como una métrica extra al momento de buscar valores atípicos [**experimental**].
+* `rango_fechas` define el rango de fechas (min|inicio, max|término) en que un reclamo es considerado (usando `caso_creacion_fecha`). Usar `NA` en uno o ambos extremos, para usar el mínimo y/o máximo de observaciones posibles. Las fechas deben estar en formato 'YYYY-MM-DD' (año completo, mes en número y día).
+
+
+## Búsqueda de valores atípicos
+
+### Cálculos previos
+
+1. Sobre los datos anteriormente agrupados:
+    a. El usuario define en que ventanas temporales (lags) desea buscar valores anómalos.
+    b. El usuario define el rango intercuantil (por defecto, el percentil 25 y 75) y el coeficiente de búsqueda (por defecto, 1.5).
+    c. El usuario define el número mínimo de observaciones en el periodo a considerar. Por defecto, un mínimo de 50 reclamos en todo el periodo de análisis.
+    d. El usuario define el período de búsqueda, entre que fechas se harán los análisis.
+2. Se calcula para el número de reclamos (`N`) la diferencia con respecto a otros períodos de tiempo (definidos por lags). En el caso mensual, se calcula la diferencia en reclamos con respecto al o los meses anteriores definidos (si se por ejemplo, se solicitan los lags 1 y 2, se calcula la diferencia en `N` con respecto al mes anterior y transanterior).
+3. La proporción de reclamos acogidos y el tiempo de respuesta del proveedor, no son sometidos a la diferenciación del paso anterior.
+4. En total, el número de variables a monitorear aumentar según el número de lags que define el usuario. 
+
+Por ejemplo, si no consideramos el tiempo de respuesta del proveedor y fijamos como lags de interés de 1 a 6 meses, se termina con las siguientes variables:
+
+* proporción de reclamos acogidos (`prop_acogidos`),
+* número de reclamos (`N`),
+* y la diferenciación en el número de reclamos a 1, 2, 3, 4, 5 y 6 meses (`d1N`, `d2N`, `d3N`, `d4N`, `d5N` y `d6N`).
+
+### Métricas
+
+1. Los datos son estandarizados (para poder comparar agrupaciones, con sus respectivas agrupaciones basales; ver ver \@ref(estandarizacion) para más detalles).
+2. Para cada una de las variables se buscan los percentiles definidos, en este caso $Q.(25)$ y $Q.(75)$.
+3. Se calculan los límites superior e inferior con respecto al rango intercuantil (ver \@ref(rango-intercuantil) para más detalles).
+4. Se buscan y marcan las observaciones que sobrepasan estos límites superior (ascendente) e inferior (descendente).
+
+
+### Ranking {.tabset .tabset-fade .tabset-pills}
+
+Para calcular el ranking, el usuario debe: 
+
+1. Definir el número de integrantes del ranking (`topn`). Se entregan `topn` registros para el ranking ascendente (observaciones con métricas que en su mayoría sobrepasan el límite superior) y `topn` registros para el ranking descendente (observaciones con métricas que en su mayoría no sobrepasan el límite inferior). En el caso de que no hayan suficientes observaciones para completar el ranking, se entrega el número máximo alcanzado.
+2. Definir el número mínimo de observaciones a considerar para formar parte del ranking (`nmin`). Para el periodo de tiempo observado, se elimina del ranking aquellas observaciones que no tengan al menos ese número de registros. En este ejemplo, se usan 15.
+3. Definir el o los períodos de tiempo observados (`t_observado`).
+
+```{r eval=FALSE, echo=TRUE}
+outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15")
+```
+
+
+#### Ranking por Número 
+
+Este es el ranking por defecto. La magnitud de la diferencia entre posiciones no es medida (la posición en el ranking del primer lugar por ejemplo, versus otro, puede ser o no ser importante).
+
+1. Se calcula el número de métricas que fueron clasificadas como atípicas (fuera del rango intercuantil) con respecto al mismo grupo.
+2. Se calcula el número de métricas que fueron clasificadas como atípicas (fuera del rango intercuantil) con respecto a los agrupamientos basales.
+3. El ranking conjunto se calcula sumando el número de métricas atípicos en ambos rankings y ordenando de mayor a menor (las que tiene más, aparece en el número 1). Este cálculo sólo se usa para construir el ranking mixto.
+4. El ranking final se elabora ordenando por: 1, 2 y el número de registros. Esto quiere decir, que el ranking interno manda. En caso de empate, se dirime por el ranking externo. En caso de empate, se dirime por el número de registros que tiene esa observación (un número mayor le da prioridad por sobre uno con menos registros).
+
+```{r eval=FALSE, echo=TRUE}
+outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15", tipo='N')
+```
+
+#### Ranking por Puntaje
+
+A diferencia del ranking anterior, aquí sí se tiene una idea de la magnitud de la diferencia.
+
+1. Se suma el percentil (`p`) de todas las métricas para las observaciones clasificadas como atípicas, con respecto al mismo grupo. La suma se hace diferenciada entre las métricas que aumentan (ascedentes) y las que disminuyen (descendentes). Para las ascendentes se usa $\sum_{m_a} p$, y para las descendetes, $\sum_{m_d} (1 -p)$.
+2. Se repite el mismo proceso anterior, pero con respecto a los agrupamientos basales.
+3. El ranking se calcula sumando el puntaje de 1 y 2.
+4. En caso de empate en el puntaje, se dirime por el número de observaciones.
+
+```{r eval=FALSE, echo=TRUE}
+outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15", tipo='puntaje')
+```
+
+#### Ranking Mixto
+
+Las posiciones en el ranking calculadas en ambos rankings (item 3 en ranking por número y puntaje), son sumadas y luego su posición final es recalculada. En caso de empate, se dirime por el número de observaciones.
+
+```{r eval=FALSE, echo=TRUE}
+outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15", tipo='mixto')
+```
+
+
+## Anexo metodológico {.tabset .tabset-fade .tabset-pills}
+
+### Cálculo del rango intercuantil {#rango-intercuantil}
+
+Para la búsqueda de valores atípicos, se utilizó como base la metodología utilizada por los gráficos de cajas (box-plots) que toman en cuenta un cierto factor de desviación con respecto al rango intercuartil (IQR), dentro de una serie de tiempo definida por algún *agrupamiento*. El IQR corresponde al valor de las observaciones comprendidas entre el cuartil 1 ($Q.(25)$) y 3 ($Q.(75)$) [@tukey_exploratory_1977; @chambers_graphical_1983]. Se utilizó un factor de desviación de $1.5$. 
+
+De esta forma, cualquier valor es considerado atípico si está por sobre $Q.(75) + 1.5*\text{IQR}$ o por debajo de $Q.(25) - 1.5*\text{IQR}$, con IQR = $Q.(75) - Q.(25)$.
+
+Es posible que el usuario pueda modificar este valor junto con el IQR, para incrementar o disminuir la exigencia para clasificar valores atípicos.
+
+Los cuartiles, son un caso especial de cuantil, los cuales fueron calculados según la ecuación \@ref(eq:cuantiles) que es el método más recomendado [@hyndman_sample_1996], por ser aproximádamente insesgado, independientemente de la distribución de los datos.
+
+\begin{align} 
+(\#eq:cuantiles)
+p_k = \left ( k - \frac{1}{3} \right) / \left ( n + \frac{1}{3} \right)
+\end{align}
+
+Adicionalmente a esos cuartiles, se calcularon el mínimo, máximo y la mediana, lo que sumados a los cuartiles 1 y 3, se conoce como el resumen de cinco números [@hoaglin_understanding_1983]. También fueron calculados la media y su desviación estándar, y el número de periodos con valores válidos. Cabe destacar que si bien estos valores son calculados, no son utilizados para conformar el ranking final.
+
+
+### Estandarización {#estandarizacion}
+
+Al momento de comparar cualquier combinación de *agrupamiento* con su respectiva *agrupación basal*, dada las diferencias de magnitudes en que se podría incurrir, los datos fueron previamente centrados y escalados (estandarización Z-score), utilizando la media y la desviación estándar (ecuación \@ref(eq:estandarizacion)). Este método es preferible a otros, debido a que preserva de mejor manera la estructura de los datos cuando se está en presencia de valores atípicos (outliers), que es la situación esperable en este caso [@raschka_python_2016]. La estandarización min-max es preferible cuando es necesario contar con valores en un rango definido (0 a 1 por ejemplo).
+
+\begin{align} 
+(\#eq:estandarizacion)
+z_i = \frac{ X_i - \hat{\mu} }{ \hat{\sigma} } ~~ \text{, con} ~ \hat{\mu} = \frac{1}{n}\sum_{i=1}^n ~\text{y}~ \hat{\sigma}=\sqrt{\frac{1}{n-1} \sum_{i=1}^n (X_i - \hat{\mu})^2 }
+\end{align}

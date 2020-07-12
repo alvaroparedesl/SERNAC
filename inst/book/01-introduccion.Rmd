@@ -1,0 +1,33 @@
+\mainmatter
+
+# Introducción
+
+## Preparación
+
+Primero descargar R desde <https://cran.r-project.org/bin/windows/base/>; luego instalar RStudio desde <https://rstudio.com/products/rstudio/download/#download>
+
+Una vez comprobado que todo funcione adecuadamanete, descargar los datos desde <http://tecpar.cl/SERNAC/dbf_v03.RData> (peso aprox, 200MB). Descargar también la librería con los códigos <http://tecpar.cl/SERNAC/SERNAC_0.11.0.zip> y el archivo comprimido con datos auxiliares <http://tecpar.cl/SERNAC/aux_data.zip>.
+
+El árbol de mercado también está disponible en: <http://tecpar.cl/SERNAC/arbol_de_mercado.xlsx>
+
+Guardar todo en algún directorio, de manera ordenada; al ejecutar RStudio, posicionarse en ese directorio con `setwd` desde la consola y ejecutar:
+
+```{r, eval=FALSE}
+setwd("G:/SERNAC") # reemplazar por la ruta propia
+install.packages("SERNAC_0.11.0.zip", repos = NULL, type = "win.binary")
+install.packages("data.table")
+install.packages("readxl")
+install.packages("shiny")
+install.packages("shinydashboard")
+install.packages("DT")
+install.packages("plotly")
+```
+
+Si todo sale bien, estamos listos para empezar a correr el código. Esto se debe correr sólo la primera vez que se ejecuta en algún computador, o cuando una nueva versión de la librería sea liberada.
+
+
+## Consideraciones
+
+Hay que tener especial cuidado con los ruts 99999999, 99999990, 1111111 y otros similares. El sistema no los trata de manera especial y varias razones sociales que son realmente diferentes pueden estar asignadas a estos ruts (lo cual no es correcto). Como el sistema toma un rut y asigna la razón social según mayoría o el registro más reciente, uno de estos ruts podría estar recogiendo información de más de una empresa.
+
+Antes de realizar cualquier cálculo, es necesario homologar la base de datos.
