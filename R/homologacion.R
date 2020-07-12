@@ -16,6 +16,7 @@ agregar_dbs <- function(base, ...) {
 
   iter <- 1
   datal <- list()
+  arboles <- list()
   for (i in data) {
     if (iter == 1) {
       temp <- do.call("homologar_db", c(list(db=i), params))
@@ -24,10 +25,20 @@ agregar_dbs <- function(base, ...) {
                            temp$arbol_motivo_legal, temp$datos_sii)
     }
     datal[[i]] <- temp$tabla
+    arboles[[i]] <- temp$arbol_a_corregir
     iter <- iter + 1
   }
-  dbf_ <- homologar_db(base, 'skip', 'skip', temp$arbol_motivo_legal, temp$datos_sii,
-                       verbose=TRUE, full_output=FALSE)$tabla
+  dbff_ <- homologar_db(base, 'skip', 'skip', temp$arbol_motivo_legal, temp$datos_sii,
+                       verbose=TRUE, full_output=FALSE)
+  dbf_ <- dbff_$tabla
+
+  arboles_corregir <- rbindlist(c(list(dbff_$arbol_a_corregir), arboles))
+  if (nrow(arboles_corregir) > 0) {
+    # arboles_corregir <- data.table::fread("arbol_mercado_a_acorregir.csv"); arboles_corregir[, Inicio:=as.POSIXct(Inicio)]; arboles_corregir[, Termino:=as.POSIXct(Termino)]
+    bynames <- setdiff(names(arboles_corregir), c("Numero", "Inicio", "Termino"))
+    arboles_corregir2 <- arboles_corregir[, list(Numero=sum(Numero), Inicio=min(Inicio), Termino=max(Termino)), by=bynames]
+    fwrite(arboles_corregir2, "arbol_mercado_a_corregir.csv")
+  }
 
   # dbfM <- consolidar_db(dbf_, grabar=F, nuevo1, nuevo2)
   dbfM <- do.call("consolidar_db", c(list(db=dbf_, grabar=F), unname(datal)))
@@ -56,7 +67,7 @@ agregar_dbs <- function(base, ...) {
 #' Si estos superan o son iguales al 80% (se puede cambiar, modificando el parámetro `drop`) del número de columnas, la fila será descartada.
 #'
 #' @importFrom readxl read_excel
-#' @importFrom data.table data.table setnames fread tstrsplit copy
+#' @importFrom data.table data.table setnames fread tstrsplit copy fwrite
 #' @importFrom utils tail
 #' @return
 #' @export
@@ -113,10 +124,10 @@ homologar_db <- function(db,
   }
 
   uniq_cols <- c("caso_cierre_fecha", "caso_creacion_fecha", "categoria_motivo_legal",
-                 "cierre_corto", "consumidor_genero", "consumidor_id",
+                 "cierre_corto", "consumidor_genero", "consumidor_id", "caso_numero",
                  "estado_caso_nombre", "mercado_tipo_producto_nombre", "motivo_legal_descripcion",
                  "proveedor_mercado_categoria_nombre", "proveedor_mercado_nombre",
-                 "proveedor_nombre_fantasia", "proveedor_rut")
+                 "proveedor_nombre_fantasia", "proveedor_rut", "reclamo_descripcion")
   if ("consumidor_comuna" %in% colnames(dat)){
     uniq_cols <- c(uniq_cols, "consumidor_comuna")
   } else {
@@ -226,6 +237,13 @@ homologar_db <- function(db,
   dt5 <- merge(dt4, arbol,
                by=c("proveedor_mercado_nombre", "motivo_legal_descripcion", "categoria_motivo_legal"),
                all.x=T, sort=F)
+  arbol_corregir <- dt5[is.na(`PROPUESTA DE FUSION MOTIVO LEGAL`) & is.na(`PROPUESTA DE FUSION CATEGORIA LEGAL`)]
+  if (nrow(arbol_corregir) > 0) {
+    arbol_corregir <- arbol_corregir[, list(Numero=.N, Inicio=min(caso_creacion_fecha), Termino=max(caso_creacion_fecha)),
+                                     by=c("proveedor_mercado_nombre", "motivo_legal_descripcion", "categoria_motivo_legal")]
+  } else {
+    arbol_corregir <- NULL
+  }
   dt5[, c("motivo_legal_descripcion", "categoria_motivo_legal"):=NULL]
   setnames(dt5, c("PROPUESTA DE FUSION MOTIVO LEGAL", "PROPUESTA DE FUSION CATEGORIA LEGAL"), c("motivo_legal_descripcion", "categoria_motivo_legal"))
 
@@ -260,9 +278,9 @@ homologar_db <- function(db,
 
   if (full_output) {
     return(list(tabla=dt6, diccionario_columnas=col_dict, codigos_comunales=comunas_cod,
-                arbol_motivo_legal=arbol, datos_sii=siiData))
+                arbol_motivo_legal=arbol, datos_sii=siiData, arbol_a_corregir=arbol_corregir))
   } else {
-    return(list(tabla=dt6))
+    return(list(tabla=dt6, arbol_a_corregir=arbol_corregir))
   }
 }
 
