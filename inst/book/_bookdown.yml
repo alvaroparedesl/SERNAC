@@ -1,5 +1,5 @@
 book_filename: SERNAC
-repo: https://github.com/rstudio/bookdown/
+repo: https://github.com/ccfv/SERNAC/
 output_dir: _book
 clean: [packages.bib, bookdown.bbl]
 delete_merged_file: true

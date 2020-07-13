@@ -1,0 +1,30 @@
+# Homologación {#capitulo-homologacion}
+
+El proceso de homologación se subdivide en varias etapas, que serán las secciones que componen este apartado. Para llegar a este proceso, se realizó un exhaustivo trabajo previo, que no es posible de automatizar para disponibilizarlo, pero que en base a dicho proceso, se puede ejecutar un proceso semi-automático que permita a los usuarios ir agregando nueva información de manera más rápido, eficiente y confiable.
+
+Se generó un proceso lo más flexible posible, que permite agregar nuevos motivos legales y nuevas variables de trabajo que estén en la base de datos, por medio de archivos Excel (para facilitar su manipulación por parte del usuario final). Conforme la base de datos va creciendo en tamaño, algunas de estas características podrían no funcionar adecuadamente, por lo cual es crucial entender bien este proceso y vigilar su correcto funcionamiento, a través de las herramientas aquí proporcionadas y por los mismos avisos que entrega el código conforme se va ejecutando.
+
+
+## Homologación en base a variables externas
+
+### Variables a utilizar
+
+Variables o columnas de la base de datos.
+
+
+### Motivos legales
+
+Árbol de motivos legales
+
+
+### Códigos comunales
+
+Si nuevas regiones son incorporadas, modificar el archivo, manteniendo el formato.
+
+
+### Datos del SII
+
+No muy usados
+
+
+## Homologación en base a variables internas

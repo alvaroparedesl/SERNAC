@@ -1,4 +1,5 @@
-# Scripts {.tabset .tabset-fade .tabset-pills}
+# Scripts {#capitulo-script}
+<!-- # Scripts {.tabset .tabset-fade .tabset-pills} -->
 
 A continuación se muestran los scripts completos (lo mismo que se ha ido desglosando en las secciones anteriores, pero todo en conjunto)
 

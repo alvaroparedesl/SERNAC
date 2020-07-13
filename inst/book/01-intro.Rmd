@@ -2,18 +2,28 @@
 
 # Introducción
 
+Este instructivo está dividido en tres partes principales. 
+
+La primera parte (apartado \@ref(capitulo-homologacion)) trata sobre la manipulación de la base de datos y los procesos de estandarización y homologación que conlleva. Este paso es crucial cuando se requiera introducir nuevos datos al sistema.
+
+La segunda parte (apartado \@ref(capitulo-metodologia)) hace referencia al funcionamiento del código y la metodología que funciona por detrás del mismo. Con esto se busca explicar cómo y por qué se obtienen los resultados que se logran, así como también para poder entender a cabalidad qué es lo que está funcionando tras bambalinas, y de ser necesario, sugerir cambios metodológicos.
+
+La tercera parte (apartado \@ref(capitulo-interpretacion)) es la más útil para el usuario final, porque permite generar e interpretar los resultados de la alerta.
+
+Al final de este documento se puede encontrar el apartado \@ref(capitulo-script) que contiene un resumen de los códigos utilizados aquí.
+
 ## Preparación
 
 Primero descargar R desde <https://cran.r-project.org/bin/windows/base/>; luego instalar RStudio desde <https://rstudio.com/products/rstudio/download/#download>
 
 Una vez comprobado que todo funcione adecuadamanete, descargar los datos desde <http://tecpar.cl/SERNAC/dbf_v03.RData> (peso aprox, 200MB). Descargar también la librería con los códigos <http://tecpar.cl/SERNAC/SERNAC_0.11.0.zip> y el archivo comprimido con datos auxiliares <http://tecpar.cl/SERNAC/aux_data.zip>.
 
-El árbol de mercado también está disponible en: <http://tecpar.cl/SERNAC/arbol_de_mercado.xlsx>
+El árbol de mercado actualizado está disponible en: <http://tecpar.cl/SERNAC/arbol_de_mercado.xlsx>
 
 Guardar todo en algún directorio, de manera ordenada; al ejecutar RStudio, posicionarse en ese directorio con `setwd` desde la consola y ejecutar:
 
 ```{r, eval=FALSE}
-setwd("G:/SERNAC") # reemplazar por la ruta propia
+setwd("ruta a mi directorio") # reemplazar por la ruta propia
 install.packages("SERNAC_0.11.0.zip", repos = NULL, type = "win.binary")
 install.packages("data.table")
 install.packages("readxl")
@@ -23,7 +33,7 @@ install.packages("DT")
 install.packages("plotly")
 ```
 
-Si todo sale bien, estamos listos para empezar a correr el código. Esto se debe correr sólo la primera vez que se ejecuta en algún computador, o cuando una nueva versión de la librería sea liberada.
+Esto se debe correr sólo la primera vez que se ejecuta en algún computador, o cuando una nueva versión de la librería sea liberada. Si todo sale bien, se puede empezar a correr el código de homologación y de alertas.
 
 
 ## Consideraciones

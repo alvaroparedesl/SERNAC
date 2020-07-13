@@ -1,6 +1,11 @@
-# Metodología
+# Metodología {#capitulo-metodologia}
 
-A continuación, una breve descripción metodológica del funcionamiento de la librería.
+Esta herramienta está construida en el lenguaje de programación `R` [@R-base] y basada principalmente en la librería `data.table` [@R-data.table], la cual permite la más rápida y eficiente manipulación/transformación de datos posible en dicho ambiente (hasta la fecha). 
+
+Se eligió este lenguaje de desarrollo por sobre otros, debido a que presenta una mayor facilidad de aprendizaje, es de libre uso y tiene un buen compromiso entre velocidad, facilidad y portabilidad.
+
+A continuación, se describirá la metodología del funcionamiento de la librería, partiendo por como se pueden agrupar los reclamos, cómo se buscan los valores atípicos y finalizando con la generación del ranking final.
+
 
 ## Agrupación
 
@@ -93,7 +98,7 @@ Por ejemplo, si no consideramos el tiempo de respuesta del proveedor y fijamos c
 4. Se buscan y marcan las observaciones que sobrepasan estos límites superior (ascendente) e inferior (descendente).
 
 
-### Ranking {.tabset .tabset-fade .tabset-pills}
+## Ranking {.tabset .tabset-fade .tabset-pills}
 
 Para calcular el ranking, el usuario debe: 
 
@@ -106,7 +111,7 @@ outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15")
 ```
 
 
-#### Ranking por Número 
+### Ranking por Número 
 
 Este es el ranking por defecto. La magnitud de la diferencia entre posiciones no es medida (la posición en el ranking del primer lugar por ejemplo, versus otro, puede ser o no ser importante).
 
@@ -119,7 +124,7 @@ Este es el ranking por defecto. La magnitud de la diferencia entre posiciones no
 outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15", tipo='N')
 ```
 
-#### Ranking por Puntaje
+### Ranking por Puntaje
 
 A diferencia del ranking anterior, aquí sí se tiene una idea de la magnitud de la diferencia.
 
@@ -132,7 +137,7 @@ A diferencia del ranking anterior, aquí sí se tiene una idea de la magnitud de
 outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15", tipo='puntaje')
 ```
 
-#### Ranking Mixto
+### Ranking Mixto
 
 Las posiciones en el ranking calculadas en ambos rankings (item 3 en ranking por número y puntaje), son sumadas y luego su posición final es recalculada. En caso de empate, se dirime por el número de observaciones.
 
