@@ -1,3 +1,58 @@
 # Interpretación {#capitulo-interpretacion}
 
-Si bien ya se han dado algunas luces de lo que significa cada etapa
+Una vez que se han definido las características y el tipo de ranking que se calcula (ver \@ref(seccion-ranking)), se puede invocar un visor dinámico que permite explorar los resultados obtenidos. Esta herramienta es sólo para visualizar y no permite ningún tipo de manipulación o exportación de la información (para exportar los datos, ver la sección \@ref(seccion-exportar)).
+
+Para invocar el visor, se debe hacer de la siguiente forma (es necesario tener las librerías @R-shiny, @R-shinydashboard, @R-plotly y @R-DT):
+
+```{r, eval=FALSE}
+outt <- extraer_series(outt)
+outt <- reportar(outt)
+
+shinyPlot(outt)
+```
+
+A continuación se presenta una descripción de las funcionalidades del visor y de como es posible extraer la información generada por la librería.
+
+
+## Visor de gráficos
+
+El visor despliega una ventana independiente, que puede ser accedida también desde un navegador web (esta última opción es más recomendable). En este se puede ver un panel lateral con opciones y una ventana principal con los diferentes gráficos de resultados.
+
+1. Fechas observadas
+1. Clase de agrupamiento
+1. Posición del ranking
+
+### Ranking {#seccion-plotly-ranking}
+
+Se muestra el número de reclamos en el tiempo para las primeras $n$ observaciones (siendo $n$ el número máximo de observaciones ranqueadas que se muestran, como se muestra en la sección \@ref(seccion-ranking). Debido a las probables diferencias en magnitudes y para facilitar la visualización, se utilizan los valores estandarizados (\@ref(estandarizacion)).
+
+El primer cuadro (superior) muestra las alertas ascendetes (cuadro rojo) y el segundo cuadro (inferior), muestra las alertas descendentes (azul).
+
+La opción *Posición del ranking* no tienen ningún efecto en esta pestaña, ya que se visualizan todos los puestos.
+
+
+### Detalle alertas {#seccion-plotly-detalle}
+
+Similar a la pestaña [Ranking](#seccion-plotly-ranking), pero ahora cada gráfico es específico la ubicación seleccionada en *Posición del ranking*. Existen dos cajas con gráficos, el de la izquierda (azul) hace referencia a las alertas descendentes y el de la derecha (rojo), a las alertas ascedentes.
+
+En cada uno de los gráficos, cada línea representa la métrica que sobrepasó los límites establecidos y que fue considerada como atípica, para dicha observación.
+
+
+## Exportar información {#seccion-exportar}
+
+En xxxx_top_ranking_reclamos_caso_numero: hay que fijarse bien en `t`, `reclamo_ascendente`, `posicion`.
+
+
+Si se desea exportar tablas con los resultados, se puede hacer con:
+  
+```{r eval=FALSE}
+exportar(outt, que=c('ranking'), verbose=T)
+```
+
+El comando anterior exportará archivos de texto en formato csv en inglés, cuyas columnas están separadas por coma (`,`) y el marcador decimal en números está definido por un punto (`.`). Si desea exportarlas en un formato en "español" (o cualquier otro) se puede especificar el separador de columnas y de decimales, con la siguiente instrucción:
+  
+```{r eval=FALSE}
+exportar(outt, que=c('ranking'), verbose=T, sep=";", dec=",")
+```
+
+Dependiendo de la configuración del computador (normalmente el idioma), el archivo podrá ser abierto directamente en Excel sin mayores modificaciones (si la configuración/idioma del computador está en inglés y se abre un archivo exportado en formato inglés, abrirá sin problemas y lo mismo para el caso en español).

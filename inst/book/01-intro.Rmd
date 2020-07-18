@@ -1,24 +1,45 @@
 \mainmatter
 
-# Introducción
+# Introducción {#capitulo-introduccion}
 
-Este instructivo está dividido en tres partes principales. 
+El Servicio Nacional del Consumidor (SERNAC) es el ente encargado, entre otras cosas de:
 
-La primera parte (apartado \@ref(capitulo-homologacion)) trata sobre la manipulación de la base de datos y los procesos de estandarización y homologación que conlleva. Este paso es crucial cuando se requiera introducir nuevos datos al sistema.
+> "fiscalizar el cumplimiento de las disposiciones de la Ley N° 19.496, sobre Protección de los Derechos de los Consumidores, y de toda otra normativa de protección a los derechos de los consumidores (artículo 58 letra a), de la Ley N° 19.496."
+>
+> ---[SERNAC](https://www.sernac.cl/portal/618/w3-propertyvalue-62729.html)
 
-La segunda parte (apartado \@ref(capitulo-metodologia)) hace referencia al funcionamiento del código y la metodología que funciona por detrás del mismo. Con esto se busca explicar cómo y por qué se obtienen los resultados que se logran, así como también para poder entender a cabalidad qué es lo que está funcionando tras bambalinas, y de ser necesario, sugerir cambios metodológicos.
+Una de las principales problemáticas que enfrenta el servicio en el día a día, es enfocar los recursos de los que disponen de la forma más eficiente posible. Esto implica, analizar los reclamos que reciben, categorizarlos y definir prioridades a la hora de ejercer sus funciones. Un incremento en el número de reclamos ¿se debe a que un proveedor en particular está teniendo un incremento? ¿es un problema de la industria en general? ¿es un problema del mercado?
 
-La tercera parte (apartado \@ref(capitulo-interpretacion)) es la más útil para el usuario final, porque permite generar e interpretar los resultados de la alerta.
+De la misma forma, se pueden producir aumentos drásticos en el número de reclamos entre dos períodos de tiempo contiguos (de un mes a otro por ejemplo), o de manera paulatina (entre varios períodos, como un aumento sostenido durante el último año).
 
-Al final de este documento se puede encontrar el apartado \@ref(capitulo-script) que contiene un resumen de los códigos utilizados aquí.
+El SERNAC se encuentra actualmente en un proceso de modernización, tomando en consideración recomendaciones del Banco Mundial [@world_bank_2018], dentro de las cuales se enmarca este proyecto que pretende automatizar y estructurar el análisis de los reclamos. De esa forma, los recursos pueden ser destinados mayoritariamente donde son más necesarios, que es en la persecución y revisión de casos, y no en el análisis de los mismos. 
 
-## Preparación
+Esto cobra mayor relevancia si se considera que SERNAC recibe entre 300.000 y 400.000 reclamos al año y para el mercado financiero (incluye banca, previsión, salud y seguros), que es en el cual se enfoca estre trabajo, el número de reclamos abarca alrededor de 50.000 a 70.000 por año. Existen algunos años particulares que presentan un número muy mayor, como el 2012 con el caso La Polar (con cerca de 92.000 reclamos) y el año 2019 debido al estallido social (con casi 120.000), ya sea por el incremento de las demandas ciudadanas ante las empresas o por las consecuencias de la inestabilidad económica que el movimiento produjo.
+
+El gran volumen de datos que se maneja, y que debería ir aumentando en el tiempo, hace imposible la tarea de revisión uno a uno de cada una de estas problemáticas. Este tipo de situaciones hacen que sea imperativo el desarrollo de herramientas que asistan a los profesionales del área en el monitoreo y persecución de los reclamos, especialmente en los casos más delicados.
+
+
+### Objetivo general {-}
+
+* Desarrollar una herramienta que permita monitorear la base de datos del reclamo del SERNAC y encontrar las agrupaciones definidas por ellos (mercado, industria, proveedor, entre otras), que presenten mayores aumentos/disminuciones con respecto al registro histórico.
+
+### Objetivos específicos {-}
+
+* Estandarizar y homologar la base de datos.
+* Generar funciones que permitan agregar nuevos datos a la base de datos.
+* Desarrollar una metodología que permita comparar y encontrar aquellas agrupaciones que sobrepasen límites establecidos.
+* Permitir visualizar los resultados de manera clara y expedita.
+* Implementar una librería de R que condense los análisis realizados.
+
+
+## Preparación/Instalación
 
 Primero descargar R desde <https://cran.r-project.org/bin/windows/base/>; luego instalar RStudio desde <https://rstudio.com/products/rstudio/download/#download>
 
-Una vez comprobado que todo funcione adecuadamanete, descargar los datos desde <http://tecpar.cl/SERNAC/dbf_v03.RData> (peso aprox, 200MB). Descargar también la librería con los códigos <http://tecpar.cl/SERNAC/SERNAC_0.11.0.zip> y el archivo comprimido con datos auxiliares <http://tecpar.cl/SERNAC/aux_data.zip>.
+<!-- desde <http://tecpar.cl/SERNAC/dbf_v03.RData> (peso aprox, 200MB) -->
+Una vez comprobado que todo funcione adecuadamanete, descargar los datos de reclamos. Descargar también la librería con los códigos <http://tecpar.cl/SERNAC/SERNAC_0.11.0.zip> y el archivo comprimido con datos auxiliares <http://tecpar.cl/SERNAC/aux_data.zip>.
 
-El árbol de mercado actualizado está disponible en: <http://tecpar.cl/SERNAC/arbol_de_mercado.xlsx>
+El árbol de mercado actualizado está disponible en: <http://tecpar.cl/SERNAC/arbol_de_mercado.xlsx>. El archivo con la homologación de las columnas, está disponible en: <http://tecpar.cl/SERNAC/homologacion_columnas.xlsx>
 
 Guardar todo en algún directorio, de manera ordenada; al ejecutar RStudio, posicionarse en ese directorio con `setwd` desde la consola y ejecutar:
 
@@ -40,4 +61,4 @@ Esto se debe correr sólo la primera vez que se ejecuta en algún computador, o 
 
 Hay que tener especial cuidado con los ruts 99999999, 99999990, 1111111 y otros similares. El sistema no los trata de manera especial y varias razones sociales que son realmente diferentes pueden estar asignadas a estos ruts (lo cual no es correcto). Como el sistema toma un rut y asigna la razón social según mayoría o el registro más reciente, uno de estos ruts podría estar recogiendo información de más de una empresa.
 
-Antes de realizar cualquier cálculo, es necesario homologar la base de datos.
+Antes de realizar cualquier cálculo, es muy necesario homologar y estandarizar la base de datos.

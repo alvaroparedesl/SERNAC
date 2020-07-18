@@ -17,6 +17,8 @@ csl: apa.csl
 link-citations: true
 header-includes: 
   - \renewcommand\refname{Referencias}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -345,12 +347,20 @@ plot(outt, t_observado='2019-10-15', pos=1, ascendente=T, clase="proveedor", met
 dbfM[motivo_legal_descripcion=="REPACTACION", list(N=.N), by=c("proveedor_mercado_nombre", "proveedor_mercado_categoria_nombre")]
 save(outt, file="DATA/202005_outt_test.RData", compress="xz", compression_level=9)
 
-<!-- 1. filtrar por id del reclamo, es único (porque las bases de datos son acumulativas, enero, enero y febero, etc) -->
+#--- Pendientes
+# TODO: corregir cut_provincia y region para dbf_v03.RData
+# TODO: Agregar posición al gráfico de plotly inicial. 
+# TODO: función que guarde el  
+
+#--- Listos
+# TODO: filtrar por id del reclamo, es único (porque las bases de datos son acumulativas, enero, enero y febero, etc) 
+
+
+#--- Otros
 <!-- 1. Hay `r nrow(res1)` observaciones de `r topn` que pertenecen al mercado financiero -->
 <!-- 2. `r nrow(res1[proveedor_mercado_categoria_nombre=='BANCOS'])` de ellas pertenecen a la Banca. -->
 
 readxl::read_excel(arbol_motivo_legal, 'ACTUAL')
-# TODO: Agregar posición al gráfico de plotly inicial. 
 # temp <- homologar_db(db1, diccionario_columnas, codigos_comunales, arbol_motivo_legal, datos_sii)
 # nuevo1 <- temp$tabla
 # 

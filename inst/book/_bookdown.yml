@@ -8,5 +8,5 @@ language:
     fig: "Figura "
     tab: "Tabla "
   ui:
-    edit: "Edit"
-    chapter_name: "Chapter "
+    edit: "Editar"
+    chapter_name: "Apartado "

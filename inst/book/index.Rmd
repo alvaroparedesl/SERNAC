@@ -1,10 +1,10 @@
 --- 
-title: "Instructivo Alertas/Semáforo SERNAC"
+title: "SERNAC Instructivo Alertas de Reclamos"
 author: "Álvaro Paredes Lizama"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 knit: "bookdown::render_book"
 documentclass: krantz
-bibliography: [book.bib, packages.bib]
+bibliography: [book.bib, extra.bib, packages.bib]
 biblio-style: apalike
 link-citations: yes
 colorlinks: yes
@@ -14,7 +14,7 @@ fontsize: 12pt
 monofont: "Source Code Pro"
 monofontoptions: "Scale=0.7"
 site: bookdown::bookdown_site
-description: "Guía la detección de alertas por medio de la librería para R, SERNAC."
+description: "Guía para la detección de anomalías en los reclamos recibidos por SERNAC, por medio de una librería para R."
 url: 'http\://tecpar.cl/R/SERNAC/'
 # github-repo: rstudio/bookdown
 # cover-image: images/cover.jpg
@@ -41,8 +41,47 @@ lapply(c('DT', 'citr', 'formatR', 'svglite'), function(pkg) {
 })
 ```
 
+# Resumen {-}
+
+El propósito de este trabajo, es la creación de una herramienta que permita monitorear el flujo de reclamos que recibe SERNAC. El principal objetivo, es encontrar los sectores (mercados, industrias, empresas, productos, entre otros) que presentan un aumento o disminución en el número habitual de reclamos, para así poder dedicar de mejor manera los recursos con los que disponen y proteger de mejor manera los intereses de los consumidores. Un problema importante, fue tratar la base de datos que carecía de estandarización en el nombre y tipo de columnas, aunque no presentaba mayores datos faltantes en las variables de interés. La detección de un número atípico de reclamos, se realizó principalmente por medio del análisis de percentiles en base a diferentes métricas, especialmente diferenciaciones a distintos períodos de tiempo. Debido a la naturaleza de los datos, esta metodología simple pero robusta, presenta varias ventajas con respecto a otras opciones para la detección de outliers. El resultado final es por un lado un visor interactivo que permite explorar los resultados y por otro lado, una serie de tablas resumen con las alertas encontradas. Al no contar con una variable que indique si una determinada observación es o no realmente atípica, la evaluación de la funcionalidad de esta herramienta se realizó por medio del juicio experto de los profesionales de SERNAC.
+
+***Palabras claves:*** SERNAC, reclamos, alerta, valores atípicos, anomalías, serie temporal.
+
 # Prefacio {-}
 
-Este trabajo es parte del proyecto de título para optar al grado de Magíster en Estadística, de la Pontificia Universidad Católica de Chile.
+::: {.rmdcaution .caution data-latex="{caution}"}
+Este documento aún está en etapa de borrador.
+:::
+
+Este trabajo se desarrolló en conjunto con la Subdirección de Consumo financiero del Servicio Nacional del Consumidor, entidad que facilitó la base de datos y prestó constante retroalimentación para calibrar el correcto funcionamiento de esta herramienta.
+
+La base de datos proporcionada es de caracter confidencial, debido a la información sensible que contiene, en una parte para proteger los datos de los consumidores y porque SERNAC en muchas instancias oficia acciones judiciales que podrían verse entorpecidas. No obstante, la información anonimizada puede ser solicitada por transparencia. Por dicha razón, los datos de base no son disponibilizados directamente.
+
+*Este trabajo se enmarca como parte del proyecto de título para optar al grado de Magíster en Estadística, de la Pontificia Universidad Católica de Chile.*
+
+## Estructura {-}
+
+El presente escrito se divide en varias secciones que pretenden enseñar el uso de la herramienta desarrollada, así como explicar su funcionamiento. 
+
+En una primera parte se (apartado \@ref(capitulo-introduccion)) desarrolla la problemática y se dan las primeras instrucciones para instalar los programas que sean necesario para analizar los reclamos.
+
+Una segunda (apartado \@ref(capitulo-homologacion)) trata sobre la manipulación de la base de datos y los procesos de estandarización y homologación que conlleva. Este paso es crucial cuando se requiera introducir nuevos datos al sistema.
+
+La tercera parte (apartado \@ref(capitulo-metodologia)) hace referencia al funcionamiento del código y la metodología que funciona por detrás del mismo. Con esto se busca explicar cómo y por qué se obtienen los resultados que se logran, así como también para poder entender a cabalidad qué es lo que está funcionando tras bambalinas, y de ser necesario, sugerir cambios metodológicos.
+
+La cuarta parte (apartado \@ref(capitulo-interpretacion)) es la más útil para el usuario final, porque permite generar e interpretar los resultados de la alerta.
+
+Al final de este documento se puede encontrar el apartado \@ref(capitulo-script) que contiene un resumen de los códigos utilizados aquí.
+
+
+## Sobre esta herramienta {-}
+
+Esta herramienta está construida en el lenguaje de programación `R` [@R-base] y basada principalmente en la librería `data.table` [@R-data.table], la cual permite la más rápida y eficiente manipulación/transformación de datos posible en dicho ambiente (hasta la fecha). 
+
+Se eligió este lenguaje de desarrollo por sobre otros, debido a que presenta una mayor facilidad de aprendizaje, es de libre uso y tiene un buen compromiso entre velocidad, facilidad y portabilidad.
+
+Esta librería se presenta como una herramienta de apoyo en la gestión de los reclamos, y no pretende bajo ninguna medida, reemplazar el factor humano y mucho menos el juicio experto de las personas que trabajan en dicha materias. Es justamente todo lo contrario, para que funcione correctamente, es necesaria la retroalimentación constante de parte de los profesionales del servicio.
 
 <!-- ![Creative Commons License](images/by-nc-sa.png) -->
+
+

@@ -7,7 +7,7 @@ A continuación se muestran los scripts completos (lo mismo que se ha ido desglo
 
 ```{r, eval=FALSE}
 setwd("G:/SERNAC") # reemplazar por la ruta propia
-install.packages("SERNAC_0.10.0.zip", repos = NULL, type = "win.binary")
+install.packages("SERNAC_0.11.0.zip", repos = NULL, type = "win.binary")
 install.packages("data.table")
 install.packages("readxl")
 install.packages("shiny")
@@ -21,7 +21,7 @@ install.packages("plotly")
 ```{r, eval=FALSE}
 rm(list=ls())
 library(SERNAC)
-load("./DATA/dbf_v03.RData") # modificar por la ruta propia
+load("./DATA/dbf_v03.RData") # modificar por la ruta propia y el archivo apropiado
 
 #-- Datos de homologacion
 diccionario_columnas <- "DATA/homologacion_columnas.xlsx"
@@ -82,14 +82,11 @@ outt <- reportar(outt)
 shinyPlot(outt)
 ```
 
-Si desea exportar las tablas, se puede hacer con:
-  
-  ```{r eval=FALSE}
-exportar(outt, que=c('ranking'), verbose=T)
-```
+## Exportar tablas
 
-Para archivos de texto cuyas columnas están separadas por coma y el marcador decimal en números está definido por un punto (.) [conocido como formato csv en inglés]. Si desea exportarlas en un formato en "español" (o cualquier otro) se puede especificar el separador de columnas y de decimales, con la siguiente instrucción:
-  
-  ```{r eval=FALSE}
-exportar(outt, que=c('ranking'), verbose=T, sep=";", dec=",")
+```{r eval=FALSE}
+exportar(outt, que=c('ranking'), verbose=T)  # formato inglés
+
+exportar(outt, que=c('ranking'), verbose=T,  # formato español
+         sep=";", dec=",")
 ```

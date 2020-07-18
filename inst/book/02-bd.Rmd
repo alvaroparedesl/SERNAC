@@ -1,30 +1,162 @@
 # Homologación {#capitulo-homologacion}
 
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(readxl)
+library(data.table)
+library(kableExtra)
+columnas <- data.table(read_excel("../../../DATA/homologacion_columnas.xlsx"))
+motivos_legales <- data.table(read_excel("../../../DATA/arbol_de_mercado.xlsx", "ACTUAL"))
+```
+
 El proceso de homologación se subdivide en varias etapas, que serán las secciones que componen este apartado. Para llegar a este proceso, se realizó un exhaustivo trabajo previo, que no es posible de automatizar para disponibilizarlo, pero que en base a dicho proceso, se puede ejecutar un proceso semi-automático que permita a los usuarios ir agregando nueva información de manera más rápido, eficiente y confiable.
 
 Se generó un proceso lo más flexible posible, que permite agregar nuevos motivos legales y nuevas variables de trabajo que estén en la base de datos, por medio de archivos Excel (para facilitar su manipulación por parte del usuario final). Conforme la base de datos va creciendo en tamaño, algunas de estas características podrían no funcionar adecuadamente, por lo cual es crucial entender bien este proceso y vigilar su correcto funcionamiento, a través de las herramientas aquí proporcionadas y por los mismos avisos que entrega el código conforme se va ejecutando.
 
 
+## Variables de interés
+
+El primer paso, y el más importante, es definir qué variables se utilizarán (cada variable hace referencia a una columna de la base de datos).
+
+Los nombres de columnas ya fueron previamente ordenados, clasificados y estandarizados. En un principio, unificando todas las bases de datos desde el 2010, se contaba con `r nrow(columnas)` columnas diferentes. En algunas de ellas era evidente que se trataba de una misma variable con diferencias en el nombre, pero otras no eran tan evidentes.
+
+Determinar cuál de dichas variables podrían ser valiosas para el objetivo de detectar situaciones de reclamos atípicas, implicó un largo tiempo de compenetración y comprensión con la base de datos, que fue posible gracias al trabajo conjunto con el equipo de SERNAC.
+
+Este trabajo fue condensando en el archivo [`homologacion_columnas`](wwww.tecpar.cl/SERNAC/homologacion_columnas.xlsx), el cual es un documento en formato Excel que contiene el nombre de una columna, su equivalencia estandarizada y si será o no utilizada en el sistema de alerta.
+
+
+### Marcar una columna como variable a utilizar
+
+En la tabla \@ref(tab:bd-columnas-homologacion) se puede ver un extracto del archivo [`homologacion_columnas`](wwww.tecpar.cl/SERNAC/homologacion_columnas.xlsx), para aquellas variables que serán utilizadas por el sistema de alertas. Las tres columnas de interés son `original`, `nuevo` y `Uso`, que marcan el nombre original con que venía en la base de datos, su nombre equivalente homologado y si la columna será o no utilizada como variable de interés, respectivamente. Para el caso de la columna `Uso`, se marcan con un $1$ aquellas columnas que serán utilizadas (y con $0$ las que no).
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(columnas[Uso==1, c("original", "nuevo", "Uso")], 10), booktabs=TRUE, label="bd-columnas-homologacion",
+             caption="Ejemplo de columnas/variables y su nombre homologado, que serán utilizadas para el sistema de alertas.")
+```
+
+Una nueva tabla es retornada con los nombres de las columnas modificadas de acuerdo al archivo `homologacion_columnas`.
+
+### Agregar una columna como variable a utilizar
+
+Basta con añadir una fila extra al archivo, indicando el nombre original, su nuevo nombre (puede ser el mismo) y el valor $1$ en al columna, bajo las columnas `original`, `nuevo` y `Uso` respectivamente. Otra información anexa de interés (como por qué se agrega, cuándo, etc) puede ser añadida en otras columnas sin problema, puesto que serán ignoradas al momento de hacer la conversión.
+
+
+### Resumen de variables
+
+Por ahora, las variables se consideran son las siguientes (como se mencionó anteriormente, se pueden agregar o quitar variables):
+
+1. `caso_cierre_fecha`: fecha cuando se cerró el reclamo. Corresponde a los nombres originales de `caso_fecha_cierre` y `fecha_resultado`.
+1. `caso_creacion_fecha`: fecha cuando se creó el reclamo. Corresponde al nombre original de `caso_fecha_creacion`. 
+1. `caso_numero`: número del caso, equivalente a un identificador único. Corresponde a los nombres originales de `caso_numero` y `numero_caso`.
+1. `categoria_motivo_legal`: inicialmente contenía 371 motivos únicos originales, que fueron reducidos a 83, después de aplicar la conversión utilizando el árbol de motivos legales (sección \@ref(seccion-motivos-legales)). Esta es una subcategoría de `motivo_legal_descripcion`. Corresponde a las nombres originales de `cat_motiv_legal`, `categoria_mercado_prov`, `categoria_mercado_sucursal`, `categoria_ml` y `categoria_motivo_legal`.
+1. `cierre_corto`: resume el tipo de cierre que se le dio al caso (el proveedor acoge, no acoge, no responde, entre otros). Corresponde al nombre original de `cierre_corto`.
+1. `consumidor_comuna`: nombre de la comuna de la persona que realiza el reclamo. En la sección \@ref(seccion-codigos-comunales)) se especifican mayores detalles respecto a su tratamiento, pero esta columna pasa a llamarse `cut_comuna`. Corresponde a los nombres originales de `comuna_consumidor` y `cons_comuna`. Actualmente no está en uso, pero se conserva por futuras necesidades.
+1. `consumidor_genero`: indica el género del reclamante (masculino, femenino o prefiero no decirlo). Corresponde a los nombres originales de `cons_genero` y `genero_consumidor`.
+1. `consumidor_id`: número único que identifica al consumidor. Corresponde a los nombres originales de `cons_id` y `id_consumidor`. Actualmente no está en uso, por carecer de información útil, pero se conserva por futuras necesidades.
+1. `estado_caso_nombre`: indica si el caso está ingresado, en proceso o cerrado. Corresponde a los nombres originales de `estado_caso` y `estado_caso_nombre`.
+1. `mercado_tipo_producto_nombre`: actualmente cuenta con 180 categorías de productos y depende de. Corresponde a los nombres originales de `mercado_tipo_producto_nombre` y `tipo_prod`.
+1. `motivo_legal_descripcion`: inicialmente contenía 48 motivos únicos, reorganizados en 17, después de aplicar la conversión utilizando el árbol de motivos legales. Describe el motivo legal principal del reclamo. Corresponde a los nombres originales de `motivo_legal` y `motivo_legal_descripcion`.
+1. `proveedor_mercado_categoria_nombre`: actualmente tiene 30 categorías de industrias (bancos, tarjetas multitiendas, clínicas, etc). Corresponde a los nombres originales de `mercado_categoria_nombre`, `nombre_categoria_mercado` y `prov_mercado_categoria_nombre`.
+1. `proveedor_mercado_nombre`: representa el mercado al cual pertenece el reclamo. Actualmente sólo se utiliza el mercado financiero, salud, seguros y previsión. Corresponde a los nombres originales de `mercado_nombre`, `mercado_prov`, `nombre_mercado` y `prov_mercado_nombre`.
+1. `proveedor_nombre_fantasia`: nombre de fantasía o razón social del proveedor (ver \@ref(seccion-homologacion-interna) para más detalles sobre la homologación de esta variable). Corresponde a los nombres originales de `nombre_fantasia_proveedor` y `proveedor_nombre_fantasia`.
+1. `proveedor_rut`: número entero, que representa el rut (sin digito verificador) del proveedor. Corresponde a los nombres originales de `proveedor_rut` y `rut_proveedor`.
+1. `reclamo_descripcion`: transcripción del reclamo presentado. Corresponde a los nombres originales de `descripcion_inconformidad` y `reclamo_descripcion`.
+
+Los formatos para las variables de fechas son `YYYY-mm-dd %H:%M:%S` o `YYYY-mm-dd %H:%M`. `YYYY` corresponde al año completo (ej: 1998), `mm` al mes en formato númerico (01 a 12), 'dd' al día del mes (01 a 31), `%H` a la hora (00 a 23), `%M` a los minutos (00 a 59) y `%S` a los segundos (00 a 59). Mayor información sobre los formatos de fechas pueden ser encontrados en <https://stat.ethz.ch/R-manual/R-devel/library/base/html/strptime.html>.
+
 ## Homologación en base a variables externas
 
-### Variables a utilizar
-
-Variables o columnas de la base de datos.
+Una primera fase está definida por la homologación que se realiza en base a fuentes de información externas a la base de datos de reclamos de SERNAC. Algunas de ellas guardan relación directa, pero otras corresponden a información proveniente de otros organismos del Estado.
 
 
-### Motivos legales
+### Motivos legales {#seccion-motivos-legales}
 
-Árbol de motivos legales
+Uno de los principales problemas iniciales, fue la gran diversidad existente de motivos legales, y sus subcategorías (`motivo_legal_descripcion` y `categoria_motivo_legal`). Gracias al trabajo conjunto con SERNAC, se construyó un diccionario (árbol) de equivalencias, entre los motivos legales originales y una nueva nomenclatura que permitiera condensarlos de manera apropiada, según el juicio experto del área encargada.
+
+Una muestra de dicho árbol se puede apreciar en la tabla \@ref(tab:bd-columnas-motivos-legales), el cual está contenido en el archivo Excel [`arbol_de_mercado`](wwww.tecpar.cl/SERNAC/arbol_de_mercado.xlsx). Para agregar nuevos motivos legales, basta con agregar nuevas filas a dicho archivo y asegurarse de usarlo al momento de llamar a las funciones de homologación. Esta etapa, no agrega nuevas columnas y modifica las ya existentes.
+
+```{r, echo=FALSE, results='asis'}
+set.seed(4849)
+mtable <- knitr::kable(motivos_legales[sample(1:nrow(motivos_legales), 4), 
+                             c("proveedor_mercado_nombre", "motivo_legal_descripcion", "categoria_motivo_legal", "PROPUESTA DE FUSION MOTIVO LEGAL", "PROPUESTA DE FUSION CATEGORIA LEGAL")], 
+             booktabs=TRUE, 
+             col.names=c("MERCADO", "MOTIVO LEGAL", "CATEGORIA LEGAL", "PROPUESTA DE FUSION MOTIVO LEGAL", "PROPUESTA DE FUSION CATEGORIA LEGAL"),
+             label="bd-columnas-motivos-legales",
+             caption="Ejemplo de motivos legales y sus respectivas homologaciones.")
+kable_styling(mtable, latex_options = c("striped", "scale_down"), bootstrap_options=c("condensed", "responsive"))
+```
+
+Motivos legales que no estén en este árbol, son añadidos al archivo `arbol_mercado_a_corregir.csv` que se genera en el directorio desde donde se está ejecutando el programa. Este archivo puede ser explorado y revisado desde Excel, para luego hacer las modificaciones pertinentes al `arbol_de_mercado` y correr el proceso nuevamente.
 
 
-### Códigos comunales
+### Códigos comunales {#seccion-codigos-comunales}
 
-Si nuevas regiones son incorporadas, modificar el archivo, manteniendo el formato.
+Debido a que las comunas fueron añadadias a la base de datos utilizando el nombre de la misma, se detectaron varios inconsistencias sobre ellas. Es recomendable utilizar una codificación estándar, menos propensa a errores, como el [código único territorial](http://www.sinim.gov.cl/archivos/centro_descargas/modificacion_instructivo_pres_codigos.pdf). La versión en formato Excel descargable del archivo, se obtiene desde <http://datos.energiaabierta.cl/rest/datastreams/250790/data.xls?applyFormat=1>, que es la que se ha estado ocupando hasta ahora, bajo el nombre de `codigos_comunales.xlsx`. Si nuevas comunas o regiones son incorporadas/modificadas, modificar el archivo, manteniendo el formato (nombre de las columnas y tipo de datos).
+
+Algunas comunas como *CON CON* y *SAN VICENTE DE TAGUA TAGUA*, oficialmente son reportadas como *Concón* y *San Vicente*, por lo que primero se debe lidear con este tipo de incosistencias para lograr obtener el código territorial correcto.
+
+1. Se transforman todos los nombres a minúsculas.
+1. Se reemplazan caracteres latinos por su equivalente (tildes por la vocal sin tilde, ñ por n).
+1. Se comparan los nombres de ambas tablas, y a los que coinciden se les asigna el código territorial comunal.
+1. Aquellos que no coinciden, se revisan de manera manual y se arma un diccionario de equivalencias (actualmente tiene 14, entre ellas las dos comunas utilizadas de ejemplo), y luego se les asigna el código territorial comunal.
+1. Del código territorial comunal, se extrae el código de la provincia y de la región.
+
+Los nuevos valores son almacenados en las columnas: `cut_comuna`, `cut_provincia`, `cut_region`. Las columas originales son descartadas.
 
 
 ### Datos del SII
 
-No muy usados
+Originalmente se incorporó esta información pensando en el modelo de riesgo y se conserva por si se desea realizar algún tipo de análisis tomando en cuenta el tamaño de la empresa. Los datos deben ser previamente descargados en formato csv desde <http://www.sii.cl/sobre_el_sii/nominapersonasjuridicas.html>. Hasta ahora se han usado datos desde <http://www.sii.cl/sobre_el_sii/nomina_empresas_pjuridicas_at2018.xlsx> y <http://www.sii.cl/estadisticas/nominas/empresas_perjurihistorico.zip>. 
+
+Por cada rut en la base de datos del SII, se elige la información más actual (debido a que una misma empresa puede figurar en varios años/periodos diferentes). Luego se unen ambas bases de datos a través del rut del proveedor, sin dígito verificador y a la base de datos princiapl se le agrega la columna `tramo_ventas`, que abarca un total de 13 niveles (más información sobre esta variable puede ser encontrada en el sitio del [SII](http://www.sii.cl/estadisticas/empresas_tamano_ventas.htm). De ser necesario, se pueden añadir otras variables que sean de interés desde los datos del SII.
 
 
-## Homologación en base a variables internas
+
+## Homologación en base a variables internas {#seccion-homologacion-interna}
+
+La segunda fase está definida por la homologación que se realiza en base a la misma información de la base de datos, utilizando dos criterios principalmente: el de mayoría o el del más reciente. Según lo acordado con SERNAC, se utilizó principalmente este último criterio, para las columnas `proveedor_nombre_fantasia`, `proveedor_mercado_nombre` y `proveedor_mercado_categoria_nombre`. Es importante señalar que esto se realiza en base a `proveedor_rut`, por lo que es sumamente importante que dicha columna no contenga ruts defectuosos.
+
+También se rectifican las fechas, por eso la importancia de que `caso_creacion_fecha` y `caso_cierre_fecha` estén en el formato apropiado, que puede ser `YYYY-mm-dd %H:%M:%S` o `YYYY-mm-dd %H:%M` (uno de los dos, no ambos en la misma columna).
+
+Finamente se calcula una nueva variable: `reclamo_acogido`. En ella se recoge si el reclamo fue o no acogido por el proveedor (`PROVEEDOR ACOGE` es 1 y cualquier otro resultado, 0). Esta variable será utilizada con posterioridad para calcular la proporción de reclamos acogidos (ver sección \@ref(seccion-agrupacion)).
+
+
+## Ejemplo
+
+```{r, eval=FALSE}
+setwd("ruta a mi directorio") # reemplazar por la ruta propia
+rm(list=ls())
+library(SERNAC)
+load("./DATA/dbf_v03.RData") # modificar por la ruta propia y el archivo apropiado
+
+#-- Datos de homologacion
+diccionario_columnas <- "homologacion_columnas.xlsx"
+codigos_comunales <- "codigos_comunales.xlsx"
+arbol_motivo_legal <- "arbol_de_mercado.xlsx"
+datos_sii <- "compilado_2018.csv"
+
+#-- Datos nuevos
+db1 <- "DATA/2019/B_Reclamos_al_31122019_extraida_24022020_liviana.csv" # base de datos del 2019
+db2 <- "DATA/2020/B_Reclamos_al_15062020_extraida_16062020_amplia.csv" # base de datos de lo que va del 2020
+
+dbfM <- agregar_dbs(base=dbf, 
+                    diccionario_columnas=diccionario_columnas,
+                    codigos_comunales=codigos_comunales,
+                    arbol_motivo_legal=arbol_motivo_legal,
+                    datos_sii=datos_sii,
+                    db1, db2)
+```
+
+
+Una salida del resultado del código anterior, puede ser encontrado en la figura \@ref(fig:homologacionWarning), el cual a pesar de las advertencias que contiene, terminó sin incovenientes, y la base de datos se encuentra lista para ser analizada.
+
+```{r homologacionWarning, echo=FALSE, fig.cap="Resultado de un proceso de homologación exitoso.", out.width='60%'}
+knitr::include_graphics("images/homologacion_warning.png")
+```
+
+
+
+## Análisis exploratorio
+
+Reclamos por año totales
+
+Reclamos por año del sector

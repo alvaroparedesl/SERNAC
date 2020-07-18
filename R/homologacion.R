@@ -201,9 +201,10 @@ homologar_db <- function(db,
 
     # x1 <- sort(setdiff(comunas_cod$comunaH, dt3$comunaH))
     x2 <- sort(setdiff(dt3$comunaH, comunas_cod$comunaH))
-    repl <- setNames(c("aisen", "concon", "coihaique", "curico", "calera", "lima", "marchihue", "o'higgins", "paiguano",
+    ## 20200714 - realizado swap NA con lima?
+    repl <- setNames(c("aisen", "concon", "coihaique", "curico", "calera", NA, "marchihue", "o'higgins", "paiguano",
                        "natales", "porvenir", "puqueldon", "san javier", "san vicente"),
-                     c("aysen", "con con", "coyhaique", "curico", "la calera", NA, "marchigue", "ohiggins", "paihuano",
+                     c("aysen", "con con", "coyhaique", "curico", "la calera", "lima", "marchigue", "ohiggins", "paihuano",
                        "puerto natales", "puerto porvenir", "puquelden", "san javier de loncomilla", "san vicente de tagua tagua"))
     dt3[comunaH %in% x2, comunaH:=repl[comunaH]]
     setdiff(comunas_cod$comunaH, dt3$comunaH) # está bien!
