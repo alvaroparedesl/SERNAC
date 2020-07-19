@@ -51,6 +51,7 @@ if (upload) {
   myopts <- RCurl::curlOptions(netrc=TRUE, netrc.file="C:/Users/alvaro/_netrc")
   files <- list.files("_book", recursive = T, full.names = F)
   temp <- lapply(files, function(x){
+    cat(paste("Uploading:", x, "\n"))
     RCurl::ftpUpload(paste0("_book/", x), paste0(mysite, x), .opts=myopts)
   })
   print("OK?")

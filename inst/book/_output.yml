@@ -10,7 +10,7 @@ bookdown::gitbook:
       after: |
         <li><a href="https://bookdown.org" target="_blank">Generado con bookdown</a></li>
     download: [pdf, epub] #, mobi]
-    edit: https://github.com/ccfv/SERNAC/edit/master/inst/book/%s
+    edit: https://github.com/alvaroparedesl/SERNAC/edit/master/inst/book/%s
     sharing:
       github: yes
       facebook: no

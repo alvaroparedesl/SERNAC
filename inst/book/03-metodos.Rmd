@@ -1,6 +1,6 @@
 # Metodología {#capitulo-metodologia}
 
-El objetivo principal de este trabajo, es permitir encontrar para una ventana temporal acotada, qué *agrupación* del número total de reclamos presentados en SERNAC, se encuentra fuera de lo esperado, es decir, se considera una observación atípica. 
+<!-- El objetivo principal de este trabajo, es permitir encontrar para una ventana temporal acotada, qué *agrupación* del número total de reclamos presentados en SERNAC, se encuentra fuera de lo esperado, es decir, se considera una observación atípica.  -->
 
 Una observación atípica (fuera de rango u outlier) es definida como:
 
@@ -12,7 +12,7 @@ Existen varias metodologías para encontrar valores atípicos por medio de anál
 
 También es posible encontrar modelos probabilísticos y estadísticos, junto con modelos lineales, para encontrar outliers. Sin embargo, estos asumen una serie de supuestos (distribución, dependencia/independencia) que las características multi seriales de los datos, es díficil de asumir a priori [@aggarwal_outlier_2017].
 
-Algunas técnicas de clasificación no supervisada se basan en la cercanía/lejanía (como los clusters) para encontrar valores atípicos. Sin embargo, al ser el espacio dimensional variable, dependiendo de las métricas que se quieran calcular, no es posible determinar a priori parámetros apropiados para configurar los algoritmos de búsqueda (normalmente el espacio ha oscilado entre 5 a 12 dimensiones/variables). Por otro lado, bajo algunas técnicas se dificulta la identificación de las variables que determinan que dicho registro es una observación fuera de rango, sin considerar que muchos de estos algoritmos están diseñados para encontrar ciertas "formas", que son imposibles de identificar previamente [@aggarwal_outlier_2017].
+Algunas técnicas de clasificación no supervisada se basan en la cercanía/lejanía, y los más populares en distancias (como los clusters) para encontrar valores atípicos. Sin embargo, al ser el espacio dimensional variable, dependiendo de las métricas que se quieran calcular, no es posible determinar a priori parámetros apropiados para configurar los algoritmos de búsqueda (normalmente el espacio ha oscilado entre 5 a 12 dimensiones/variables). Por otro lado, bajo algunas técnicas se dificulta la identificación de las variables que determinan que dicho registro es una observación fuera de rango, sin considerar que muchos de estos algoritmos están diseñados para encontrar ciertas "formas", que son imposibles de identificar previamente [@aggarwal_outlier_2017].
 
 Por ello se hace necesario desarrollar una metodología que permita automatizar el proceso, pero que a la vez sea robusta, y que permita analizar una gran volumen de series temporales de diferente naturaleza, sobre todo considerando el gran universo de diferentes tipos de mercados, industrias, proveedores y productos. Por último, también es necesario que esta metodología permita identificar con precisión cuál es la causa de que un valor sea catalogado o no como atípico, es decir, no sólo interesa *dónde/cuándo*, si no que también *cuál*.
 
@@ -75,7 +75,7 @@ outt <- computar_reclamos(dbfM[estado_caso_nombre=="CERRADO"],
 
 * `dbfM` es la base de datos previamente homologada. 
 * `byCategoria` contiene las *Categorías* que se usarán (en este caso son las mencionadas anteriormente); a diferencia de las *Clases* no es necesario darle un nombre corto. 
-* `lags` se definen las unidades de tiempo a mirar hacia atrás y en este caso, se está mirando a 1, 2, 3, 4, 5, 6, 12 y 24 meses. 
+* `lags` (desfases) se definen las unidades de tiempo a mirar hacia atrás y en este caso, se está mirando a 1, 2, 3, 4, 5, 6, 12 y 24 meses. 
 * `cuantiles` e `IQR` definene qué cuantiles calcular y cuál será el límite del rango intercuantil (min, max) respectivamente. `IQR` debe estar presente en `cuantiles`, o sea producirá un error.
 * `coef` corresponde a la máxima desviación con respecto a `IQR`(ver \@ref(rango-intercuantil) para más detalles).
 * `n_min` define el número mínimo de observaciones por proveedor (`proveedor_rut`). Caso de ser menor, dichas observaciones no se toman en cuenta (se elimina el proveedor).
@@ -88,15 +88,15 @@ outt <- computar_reclamos(dbfM[estado_caso_nombre=="CERRADO"],
 ### Cálculos previos
 
 1. Sobre los datos anteriormente agrupados:
-    a. El usuario define en que ventanas temporales (lags) desea buscar valores anómalos.
+    a. El usuario define en que ventanas temporales (desfase o lags) desea buscar valores anómalos.
     a. El usuario define el rango intercuantil (por defecto, el percentil 25 y 75) y el coeficiente de búsqueda (por defecto, 1.5).
     a. El usuario define el número mínimo de observaciones en el periodo a considerar. Por defecto, un mínimo de 50 reclamos en todo el periodo de análisis.
     a. El usuario define el período de búsqueda, entre que fechas se harán los análisis.
-1. Se calcula para el número de reclamos (`N`) la diferencia con respecto a otros períodos de tiempo (definidos por lags). En el caso mensual, se calcula la diferencia en reclamos con respecto al o los meses anteriores definidos (si se por ejemplo, se solicitan los lags 1 y 2, se calcula la diferencia en `N` con respecto al mes anterior y transanterior).
+1. Se calcula para el número de reclamos (`N`) la diferencia con respecto a otros períodos de tiempo (definidos por los desfases). En el caso mensual, se calcula la diferencia en reclamos con respecto al o los meses anteriores definidos (si se por ejemplo, se solicitan los lags 1 y 2, se calcula la diferencia en `N` con respecto al mes anterior y transanterior).
 1. La proporción de reclamos acogidos y el tiempo de respuesta del proveedor, no son sometidos a la diferenciación del paso anterior.
-1. En total, el número de variables a monitorear aumentar según el número de lags que define el usuario. 
+1. En total, el número de variables a monitorear aumentar según el número de desfases que define el usuario. 
 
-Por ejemplo, si no consideramos el tiempo de respuesta del proveedor y fijamos como lags de interés de 1 a 6 meses, se termina con las siguientes variables:
+Por ejemplo, si no consideramos el tiempo de respuesta del proveedor y fijamos como desfases de interés de 1 a 6 meses, se termina con las siguientes variables:
 
 * proporción de reclamos acogidos (`prop_acogidos`),
 * número de reclamos (`N`),
@@ -114,7 +114,7 @@ Por ejemplo, si no consideramos el tiempo de respuesta del proveedor y fijamos c
 
 Para calcular el ranking, el usuario debe: 
 
-1. Definir el número de integrantes del ranking (`topn`). Se entregan `topn` registros para el ranking ascendente (observaciones con métricas que en su mayoría sobrepasan el límite superior) y `topn` registros para el ranking descendente (observaciones con métricas que en su mayoría no sobrepasan el límite inferior). En el caso de que no hayan suficientes observaciones para completar el ranking, se entrega el número máximo alcanzado.
+1. Definir el número de integrantes del ranking (`topn`): se entregan `topn` registros para el ranking ascendente (observaciones con métricas que en su mayoría sobrepasan el límite superior) y `topn` registros para el ranking descendente (observaciones con métricas que en su mayoría no sobrepasan el límite inferior). En el caso de que no hayan suficientes observaciones para completar el ranking, se entrega el número máximo alcanzado.
 2. Definir el número mínimo de observaciones a considerar para formar parte del ranking (`nmin`). Para el periodo de tiempo observado, se elimina del ranking aquellas observaciones que no tengan al menos ese número de registros. En este ejemplo, se usan 15.
 3. Definir el o los períodos de tiempo observados (`t_observado`). 
 
@@ -132,7 +132,7 @@ Este es el ranking por defecto. La magnitud de la diferencia entre posiciones no
 1. Se calcula el número de métricas que fueron clasificadas como atípicas (fuera del rango intercuantil) con respecto al mismo grupo.
 2. Se calcula el número de métricas que fueron clasificadas como atípicas (fuera del rango intercuantil) con respecto a los agrupamientos basales.
 3. El ranking conjunto se calcula sumando el número de métricas atípicos en ambos rankings y ordenando de mayor a menor (las que tiene más, aparece en el número 1). Este cálculo sólo se usa para construir el ranking mixto.
-4. El ranking final se elabora ordenando por: 1, 2 y el número de registros. Esto quiere decir, que el ranking interno manda. En caso de empate, se dirime por el ranking externo. En caso de empate, se dirime por el número de registros que tiene esa observación (un número mayor le da prioridad por sobre uno con menos registros).
+4. El ranking final se elabora ordenando por: 1, 2 y el número de registros. Es decir, el ranking interno toma precedencia. En caso de empate, se dirime por el ranking externo. En caso de un nuevo empate, se dirime por el número de registros que tiene esa observación (un número mayor le da prioridad por sobre uno con menos registros).
 
 ```{r eval=FALSE, echo=TRUE}
 outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15", tipo='N')

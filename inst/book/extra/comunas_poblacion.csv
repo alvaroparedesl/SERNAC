@@ -1,4 +1,4 @@
-CUT (Código Único Territorial),Nombre,Unnamed: 2,Provincia,Región,Superficie(km2),Población2017,Densidad(hab./km2),IDH 2005,IDH 2005.1,Latitud,Longitud
+CUT,Nombre,Unnamed,Provincia,Region,Superficie_km2,Poblacion2017,Densidad_hab_km2,IDH 2005,IDH 2005_1,Latitud,Longitud
 15101,Arica,,Arica,Arica y Parinacota,4799.4,221364,0.46,38.4,Alto,"-18°27'18""","-70°17'24"""
 15102,Camarones,,Arica,Arica y Parinacota,3927,1255,0.32,0.7509999999999999,Alto,"-19°1'1.2""","-69°52'1.2"""
 15201,Putre,,Parinacota,Arica y Parinacota,5902.5,2765,0.47,0.7070000000000001,Alto,"-18°12'0""","-69°34'58.8"""

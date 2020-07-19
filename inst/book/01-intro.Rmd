@@ -8,17 +8,13 @@ El Servicio Nacional del Consumidor (SERNAC) es el ente encargado, entre otras c
 >
 > ---[SERNAC](https://www.sernac.cl/portal/618/w3-propertyvalue-62729.html)
 
-Una de las principales problemáticas que enfrenta el servicio en el día a día, es enfocar los recursos de los que disponen de la forma más eficiente posible. Esto implica, analizar los reclamos que reciben, categorizarlos y definir prioridades a la hora de ejercer sus funciones. Un incremento en el número de reclamos ¿se debe a que un proveedor en particular está teniendo un incremento? ¿es un problema de la industria en general? ¿es un problema del mercado?
+Una de las principales problemáticas que enfrenta SERNAC en el día a día, es enfocar los recursos de los que disponen de la forma más eficiente posible. Esto implica, analizar los reclamos que reciben, categorizarlos y definir prioridades a la hora de ejercer sus funciones. Un incremento en el número de reclamos ¿se debe a que un proveedor en particular está teniendo un incremento? ¿es un problema de la industria en general? ¿es un problema del mercado?
 
 De la misma forma, se pueden producir aumentos drásticos en el número de reclamos entre dos períodos de tiempo contiguos (de un mes a otro por ejemplo), o de manera paulatina (entre varios períodos, como un aumento sostenido durante el último año).
 
-El SERNAC se encuentra actualmente en un proceso de modernización, tomando en consideración recomendaciones del Banco Mundial [@world_bank_2018], dentro de las cuales se enmarca este proyecto que pretende automatizar y estructurar el análisis de los reclamos. De esa forma, los recursos pueden ser destinados mayoritariamente donde son más necesarios, que es en la persecución y revisión de casos, y no en el análisis de los mismos. 
+El SERNAC se encuentra actualmente en un proceso de modernización, tomando en consideración recomendaciones del Banco Mundial [@world_bank_2018], dentro de las cuales se enmarca este proyecto que pretende automatizar y estructurar el análisis de los reclamos. De esa forma, los recursos pueden ser destinados mayoritariamente donde son más necesarios, que es en la persecución y revisión de casos, y no en el análisis de los mismos. Esto cobra mayor relevancia si se considera que SERNAC recibe entre 300.000 y 400.000 reclamos al año y para el mercado financiero (incluye banca, previsión, salud y seguros), que es en el cual se enfoca estre trabajo, el número de reclamos abarca alrededor de 50.000 a 70.000 por año. Existen algunos años particulares que presentan un número muy mayor, como el 2012 con el caso La Polar (con cerca de 92.000 reclamos) y el año 2019 debido al estallido social (con casi 120.000), ya sea por el incremento de las demandas ciudadanas ante las empresas o por las consecuencias de la inestabilidad económica que el movimiento produjo.
 
-Esto cobra mayor relevancia si se considera que SERNAC recibe entre 300.000 y 400.000 reclamos al año y para el mercado financiero (incluye banca, previsión, salud y seguros), que es en el cual se enfoca estre trabajo, el número de reclamos abarca alrededor de 50.000 a 70.000 por año. Existen algunos años particulares que presentan un número muy mayor, como el 2012 con el caso La Polar (con cerca de 92.000 reclamos) y el año 2019 debido al estallido social (con casi 120.000), ya sea por el incremento de las demandas ciudadanas ante las empresas o por las consecuencias de la inestabilidad económica que el movimiento produjo.
-
-El gran volumen de datos que se maneja, y que debería ir aumentando en el tiempo, hace imposible la tarea de revisión uno a uno de cada una de estas problemáticas. Este tipo de situaciones hacen que sea imperativo el desarrollo de herramientas que asistan a los profesionales del área en el monitoreo y persecución de los reclamos, especialmente en los casos más delicados.
-
-Uno de los mayores desafíos para llevar a cabo la tarea, fue consolidar la base de datos. Los primeros registros proporcionados parten el año 2010, y se extienden hasta el presente (la actualización de la base de datos suele ser cada 15 días). Las bases de datos fueron proporcionada en formato Excel, a razón de uno o dos archivos por año. Cada cierto tiempo, estas bases cambian el número de columnas y también el nombre de variables de interés, lo cual dificultó la tarea de consolidación de las bases de datos. A futuro esto no debiera revestir mayores problemas, dado que esta es una de las materias que se están modernizando en el servicio.
+El gran volumen de datos que se maneja, y que debería ir aumentando en el tiempo, hace imposible la tarea de revisión uno a uno de cada una de estas problemáticas. Este tipo de situaciones hacen que sea imperativo el desarrollo de herramientas que asistan a los profesionales del área en el monitoreo y persecución de los reclamos, especialmente en los casos más delicados. Uno de los mayores desafíos para llevar a cabo la tarea, fue consolidar la base de datos. Los primeros registros proporcionados parten el año 2010, y se extienden hasta el presente (la actualización de la base de datos suele ser cada 15 días). Las bases de datos fueron proporcionada en formato Excel, a razón de uno o dos archivos por año. Cada cierto tiempo, estas bases cambian el número de columnas y también el nombre de variables de interés, lo cual dificultó la tarea de consolidación de las bases de datos. A futuro esto no debiera revestir mayores problemas, dado que esta es una de las materias que se están modernizando en el servicio.
 
 Otra dificultad, es que si bien SERNAC continuamente realiza un monitoreo a los reclamos, no existe una variable respuesta establecida como para hacer comparaciones, debido a las grandes complejidades que el proceso conlleva, por ser un problema supeditado a múltiples factores/variables. Por ello es que la validación del desempeño de la herramienta queda supedidata al juicio experto de los profesionales del SERNAC y no es posible calcular las típicas métricas de desempeño (precisión, sensibilidad, curva ROC, entre otras).
 
@@ -29,10 +25,10 @@ Otra dificultad, es que si bien SERNAC continuamente realiza un monitoreo a los 
 
 ### Objetivos específicos {-}
 
-* Estandarizar y homologar la base de datos.
+* Estandarizar y homologar las bases de datos.
 * Generar funciones que permitan agregar nuevos datos a la base de datos.
 * Desarrollar una metodología que permita comparar y encontrar aquellas agrupaciones que sobrepasen límites establecidos.
-* Permitir visualizar los resultados de manera clara y expedita.
+<!-- * Permitir visualizar los resultados de manera clara y expedita. -->
 * Implementar una librería de R que condense los análisis realizados.
 
 

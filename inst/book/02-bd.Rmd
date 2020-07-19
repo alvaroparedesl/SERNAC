@@ -17,7 +17,7 @@ Se generó un proceso lo más flexible posible, que permite agregar nuevos motiv
 
 El primer paso, y el más importante, es definir qué variables se utilizarán (cada variable hace referencia a una columna de la base de datos).
 
-Los nombres de columnas ya fueron previamente ordenados, clasificados y estandarizados. En un principio, unificando todas las bases de datos desde el 2010, se contaba con `r nrow(columnas)` columnas diferentes. En algunas de ellas era evidente que se trataba de una misma variable con diferencias en el nombre, pero otras no eran tan evidentes.
+Los nombres de columnas fueron previamente ordenados, clasificados y estandarizados en un trabajo conjunto con SERNAC. En un principio, unificando todas las bases de datos desde el 2010, se contaba con `r nrow(columnas)` columnas diferentes.
 
 Determinar cuál de dichas variables podrían ser valiosas para el objetivo de detectar situaciones de reclamos atípicas, implicó un largo tiempo de compenetración y comprensión con la base de datos, que fue posible gracias al trabajo conjunto con el equipo de SERNAC.
 
@@ -58,14 +58,16 @@ Las variables que se consideraron son las siguientes (como se mencionó previame
 1. `proveedor_mercado_categoria_nombre`: actualmente tiene 30 categorías de industrias (bancos, tarjetas multitiendas, clínicas, etc). Corresponde a los nombres originales de `mercado_categoria_nombre`, `nombre_categoria_mercado` y `prov_mercado_categoria_nombre`.
 1. `proveedor_mercado_nombre`: representa el mercado al cual pertenece el reclamo. Actualmente sólo se utiliza el mercado financiero, salud, seguros y previsión. Corresponde a los nombres originales de `mercado_nombre`, `mercado_prov`, `nombre_mercado` y `prov_mercado_nombre`.
 1. `proveedor_nombre_fantasia`: nombre de fantasía o razón social del proveedor (ver \@ref(seccion-homologacion-interna) para más detalles sobre la homologación de esta variable). Corresponde a los nombres originales de `nombre_fantasia_proveedor` y `proveedor_nombre_fantasia`.
-1. `proveedor_rut`: número entero, que representa el rut (sin digito verificador) del proveedor. Corresponde a los nombres originales de `proveedor_rut` y `rut_proveedor`.
+1. `proveedor_rut`: número entero, que representa el RUT (sin digito verificador) del proveedor. Corresponde a los nombres originales de `proveedor_rut` y `rut_proveedor`.
 1. `reclamo_descripcion`: transcripción del reclamo presentado. Corresponde a los nombres originales de `descripcion_inconformidad` y `reclamo_descripcion`.
+
+Estos nombres estandarizados se definieron en base a un criterio de pertenencia, es decir, las columnas que hacen referencias al consumidor, parten con el nombre de consumidor; lo mismo con el proveedor, el caso, etc. Con esto se busca facilitar la búsqueda de variables de interés y facilitar su agrupamiento.
 
 Los formatos para las variables de fechas son `YYYY-mm-dd %H:%M:%S` o `YYYY-mm-dd %H:%M`. `YYYY` corresponde al año completo (ej: 1998), `mm` al mes en formato númerico (01 a 12), 'dd' al día del mes (01 a 31), `%H` a la hora (00 a 23), `%M` a los minutos (00 a 59) y `%S` a los segundos (00 a 59). Mayor información sobre los formatos de fechas pueden ser encontrados en <https://stat.ethz.ch/R-manual/R-devel/library/base/html/strptime.html>.
 
 ## Homologación en base a variables externas {#homologacion-variables-externas}
 
-Una primera fase está definida por la homologación que se realiza en base a fuentes de información externas a la base de datos de reclamos de SERNAC. Algunas de ellas guardan relación directa, pero otras corresponden a información proveniente de otros organismos del Estado.
+Una primera fase está definida por la homologación que se realiza en base a fuentes de información externas a la base de datos de reclamos de SERNAC. Algunas de ellas guardan relación directa, pero otras corresponden a información proveniente de otros organismos del Estado (como el Servicio de Impuestos Internos y el Ministerio de Energía).
 
 
 ### Motivos legales {#seccion-motivos-legales}
@@ -107,13 +109,22 @@ Los nuevos valores son almacenados en las columnas: `cut_comuna`, `cut_provincia
 
 Originalmente se incorporó esta información pensando en el modelo de riesgo y se conserva por si se desea realizar algún tipo de análisis tomando en cuenta el tamaño de la empresa. Los datos deben ser previamente descargados en formato csv desde <http://www.sii.cl/sobre_el_sii/nominapersonasjuridicas.html>. Hasta ahora se han usado datos desde <http://www.sii.cl/sobre_el_sii/nomina_empresas_pjuridicas_at2018.xlsx> y <http://www.sii.cl/estadisticas/nominas/empresas_perjurihistorico.zip>. 
 
-Por cada rut en la base de datos del SII, se elige la información más actual (debido a que una misma empresa puede figurar en varios años/periodos diferentes). Luego se unen ambas bases de datos a través del rut del proveedor, sin dígito verificador y a la base de datos princiapl se le agrega la columna `tramo_ventas`, que abarca un total de 13 niveles (más información sobre esta variable puede ser encontrada en el sitio del [SII](http://www.sii.cl/estadisticas/empresas_tamano_ventas.htm). De ser necesario, se pueden añadir otras variables que sean de interés desde los datos del SII.
+Por cada RUT en la base de datos del SII, se elige la información más actual (debido a que una misma empresa puede figurar en años/periodos diferentes). Luego se unen ambas bases de datos a través del RUT del proveedor, sin dígito verificador y a la base de datos princiapl se le agrega la columna `tramo_ventas`, que abarca un total de 13 niveles (ver tabla \@ref(tab:tramos-sii)). Más información sobre esta variable puede ser encontrada en el sitio del [SII](http://www.sii.cl/estadisticas/empresas_tamano_ventas.htm). 
+
+```{r, echo=FALSE, results='asis'}
+mtable <- knitr::kable(SII_sizes[-14, c(1, 3:4)], booktabs=TRUE, label="tramos-sii", 
+                       caption="Tamaños de empresas por tramo de ventas.",
+                       col.names=c("Código", "Tramo de ventas", "Rango de ventas"))
+kable_styling(mtable, latex_options = c("striped", "scale_down"), bootstrap_options=c("condensed", "responsive"))
+```
+
+De ser necesario, se pueden añadir otras variables que sean de interés desde los datos del SII.
 
 
 
 ## Homologación en base a variables internas {#seccion-homologacion-interna}
 
-La segunda fase está definida por la homologación que se realiza en base a la misma información de la base de datos, utilizando dos criterios principalmente: el de mayoría o el del más reciente. Según lo acordado con SERNAC, se utilizó principalmente este último criterio, para las columnas `proveedor_nombre_fantasia`, `proveedor_mercado_nombre` y `proveedor_mercado_categoria_nombre`. Es importante señalar que esto se realiza en base a `proveedor_rut`, por lo que es sumamente importante que dicha columna no contenga ruts defectuosos.
+La segunda fase está definida por la homologación que se realiza en base a la misma información de la base de datos, utilizando dos criterios principalmente: el de mayoría o el del más reciente. Según lo acordado con SERNAC, se utilizó principalmente este último criterio, para las columnas `proveedor_nombre_fantasia`, `proveedor_mercado_nombre` y `proveedor_mercado_categoria_nombre`. Es importante señalar que esto se realiza en base a `proveedor_rut`, por lo que es sumamente importante que dicha columna no contenga RUTs faltantes, mal escritos o que no correspondan al proveedor.
 
 También se rectifican las fechas, por eso la importancia de que `caso_creacion_fecha` y `caso_cierre_fecha` estén en el formato apropiado, que puede ser `YYYY-mm-dd %H:%M:%S` o `YYYY-mm-dd %H:%M` (uno de los dos, no ambos en la misma columna).
 
@@ -156,10 +167,39 @@ knitr::include_graphics("images/homologacion_warning.png")
 
 ## Análisis exploratorio {#analisis-exploratorio}
 
-Las variables de interés, a excepción de las fechas, son de tipo categórica (como quedó manifestado en la sección \@ref(seccion-resumen-variables)). Por dicho motivo, realizar un análisis por cada una de ellas no es de mucha utilidad, sobre todo si se considera que el estado actual de la base de datos, no es el que se utilizará para conducir el estudio. Para que los datos cobren sentido, es necesario agruparlos por alguna unidad de tiempo definida (sección \@ref(seccion-seccion-agrupacion)).
+Las variables de interés, a excepción de las fechas, son de tipo categórica (como quedó manifestado en la sección \@ref(seccion-resumen-variables)). Por dicho motivo, realizar un análisis por cada una de ellas no aporta mayor información, sobre todo si se considera que el estado actual de la base de datos, no es el que se utilizará para conducir el estudio. Para que los datos cobren sentido, es necesario agruparlos por alguna unidad de tiempo definida (sección \@ref(seccion-agrupacion)).
 
 Por dicha razón, a continuación se presentarán algunos resumenes de datos agregados, que son de particular interés para contextualizar los reclamos recibidos por SERNAC.
 
-Reclamos por año totales
+### Reclamos a través del tiempo
 
-Reclamos por año del sector
+En la figura \@ref(fig:total-reclamos-mercado) se puede apreciar como ha evolucionado el número de reclamos a través del tiempo. Se muestran los resultados con el número de reclamos (figura superior) y con el logaritmo en base 10 (figura inferior), para poder discrimnar de mejor manera las diferencias cuando se tienen bajo o alto número de reclamos. Se aprecia un alza para el mercado financiero para el año 2012 y una alza generalizada desde principios de 2012 en adelante.
+
+```{r total-reclamos-mercado, echo=FALSE, fig.cap="Evolución del número de reclamos a través del tiempo según mercado. La figura superior muestra el número de reclamos a través del tiempo, y la figura inferior el log10 del número de reclamos.", fig.width=8, fig.height=10}
+# datosPlots, comunas, comunas_poblacion, SII_sizes
+or_ <- par("mar")
+source("extra/funciones.R", local=TRUE)
+par(mar=c(5.1, 4.1, 2.1, 6.1))
+total_reclamos_mercado <- data.table::dcast(datosPlots, date~proveedor_mercado_nombre, sum, value.var="N")
+par(mfrow=c(2,1))
+plotSeries(total_reclamos_mercado,
+           x="date", ys=c("FINANCIEROS", "PREVISION", "SALUD", "SEGUROS"), logy=F, legend=T, legendx=-.21,
+           xlab="Tiempo", ylab="Número de reclamos")
+plotSeries(total_reclamos_mercado, 
+           x="date", ys=c("FINANCIEROS", "PREVISION", "SALUD", "SEGUROS"), logy=T, legend=T, legendx=-.21,
+           xlab="Tiempo", ylab="Número de reclamos [log10(N)]")
+```
+
+Al dividir los reclamos por género, no se aprecian mayores diferencias, tal y como se puede observar en la figura \@ref(fig:total-reclamos-genero).
+
+```{r total-reclamos-genero, echo=FALSE, fig.cap="Evolución del número de reclamos a través del tiempo según género", fig.width=8}
+par(mar=c(5.1, 4.1, 2.1, 6.1))
+total_reclamos_genero <- data.table::dcast(datosPlots, date~consumidor_genero, sum, value.var="N")[, 1:3]
+plotSeries(total_reclamos_genero,
+           x="date", ys=NULL, logy=F, legend=T, legendx=-.21,
+           xlab="Tiempo", ylab="Número de reclamos")
+```
+
+
+### Reclamos por tamaño de empresa
+
