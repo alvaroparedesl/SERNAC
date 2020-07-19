@@ -12,7 +12,8 @@ plotSeries <- function(dataframe, xs, ys, logy=FALSE, principal=0, legend=F, leg
   
   ylim <- range(y, na.rm=T)
   xlim <- as.Date(range(x, na.rm=T))
-  colores <- colorRampPalette(c("#b2182b", "#d9ef8b", "#2166ac"))(ne)
+  # colores <- colorRampPalette(c("#b2182b", "#d9ef8b", "#2166ac"))(ne)
+  colores <- colorRampPalette(c("#e31a1c", "#d9ef8b", "#2166ac"))(ne)
   yaxt <- switch(logy, "n", "s")
   
   if (principal==0){

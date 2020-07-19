@@ -105,7 +105,7 @@ Algunas comunas como *CON CON* y *SAN VICENTE DE TAGUA TAGUA*, oficialmente son 
 Los nuevos valores son almacenados en las columnas: `cut_comuna`, `cut_provincia`, `cut_region`. Las columas originales son descartadas.
 
 
-### Datos del SII
+### Datos del SII {#homologacion-datos-sii}
 
 Originalmente se incorporó esta información pensando en el modelo de riesgo y se conserva por si se desea realizar algún tipo de análisis tomando en cuenta el tamaño de la empresa. Los datos deben ser previamente descargados en formato csv desde <http://www.sii.cl/sobre_el_sii/nominapersonasjuridicas.html>. Hasta ahora se han usado datos desde <http://www.sii.cl/sobre_el_sii/nomina_empresas_pjuridicas_at2018.xlsx> y <http://www.sii.cl/estadisticas/nominas/empresas_perjurihistorico.zip>. 
 
@@ -169,11 +169,9 @@ knitr::include_graphics("images/homologacion_warning.png")
 
 Las variables de interés, a excepción de las fechas, son de tipo categórica (como quedó manifestado en la sección \@ref(seccion-resumen-variables)). Por dicho motivo, realizar un análisis por cada una de ellas no aporta mayor información, sobre todo si se considera que el estado actual de la base de datos, no es el que se utilizará para conducir el estudio. Para que los datos cobren sentido, es necesario agruparlos por alguna unidad de tiempo definida (sección \@ref(seccion-agrupacion)).
 
-Por dicha razón, a continuación se presentarán algunos resumenes de datos agregados, que son de particular interés para contextualizar los reclamos recibidos por SERNAC.
+Por dicha razón, a continuación se presentarán algunos resumenes de datos agregados por mes, que son de particular interés para contextualizar los reclamos recibidos por SERNAC.
 
-### Reclamos a través del tiempo
-
-En la figura \@ref(fig:total-reclamos-mercado) se puede apreciar como ha evolucionado el número de reclamos a través del tiempo. Se muestran los resultados con el número de reclamos (figura superior) y con el logaritmo en base 10 (figura inferior), para poder discrimnar de mejor manera las diferencias cuando se tienen bajo o alto número de reclamos. Se aprecia un alza para el mercado financiero para el año 2012 y una alza generalizada desde principios de 2012 en adelante.
+En la figura \@ref(fig:total-reclamos-mercado) se puede apreciar como ha evolucionado el número de reclamos a través del tiempo. Se muestran los resultados con el número de reclamos (figura superior) y con el logaritmo en base 10 (figura inferior), para poder discrimnar de mejor manera las diferencias cuando se tienen bajo o alto número de reclamos. Se puede apreciar un alza para el mercado financiero para el año 2012 y una alza generalizada desde principios de 2012 en adelante. También se puede apreciar que el mercado con más reclamos es el financiero, seguido por el de seguros, salud y previsión.
 
 ```{r total-reclamos-mercado, echo=FALSE, fig.cap="Evolución del número de reclamos a través del tiempo según mercado. La figura superior muestra el número de reclamos a través del tiempo, y la figura inferior el log10 del número de reclamos.", fig.width=8, fig.height=10}
 # datosPlots, comunas, comunas_poblacion, SII_sizes
@@ -192,7 +190,7 @@ plotSeries(total_reclamos_mercado,
 
 Al dividir los reclamos por género, no se aprecian mayores diferencias, tal y como se puede observar en la figura \@ref(fig:total-reclamos-genero).
 
-```{r total-reclamos-genero, echo=FALSE, fig.cap="Evolución del número de reclamos a través del tiempo según género", fig.width=8}
+```{r total-reclamos-genero, echo=FALSE, fig.cap="Evolución del número de reclamos a través del tiempo según género.", fig.width=8}
 par(mar=c(5.1, 4.1, 2.1, 6.1))
 total_reclamos_genero <- data.table::dcast(datosPlots, date~consumidor_genero, sum, value.var="N")[, 1:3]
 plotSeries(total_reclamos_genero,
@@ -200,6 +198,53 @@ plotSeries(total_reclamos_genero,
            xlab="Tiempo", ylab="Número de reclamos")
 ```
 
+En cuanto al tamaño de las empresas (catalogadas según sus ventas), se puede ver en la figura \@ref(fig:total-por-tramo-sii) que las empresas de mayor tamaño acaparan la casi totalidad de los reclamos realizados en SERNAC. En dicha figura, se utilizó la escala logaritmíca para hacer posible la comparación entre los diferentes tipos de empresas. Cabe destacar que empresas catalogadas como sin ventas, no necesariamente no prestaron servicios (ver sección \@ref(homologacion-datos-sii) para más detalles).
 
-### Reclamos por tamaño de empresa
+```{r total-por-tramo-sii, echo=FALSE, fig.cap="Evolución del número de reclamos a través del tiempo según tamaño empresa.", fig.width=8}
+par(mar=c(5.1, 4.1, 2.1, 6.1))
+datosPlotsSII <- merge(datosPlots, SII_sizes[, c(1:2)], by.x="tramo_ventas", by.y="CODIGO")
+total_reclamos_size <- data.table::dcast(datosPlotsSII, date~TRAMO, sum, value.var="N")
+plotSeries(total_reclamos_size,
+           x="date", ys=NULL, logy=T, legend=T, legendx=-.21,
+           xlab="Tiempo", ylab="Número de reclamos [log10(N)]")
+```
 
+Cabe destacar, que para el año 2016 (año tributario 2015), que es la última información resumida actualizada que tiene el SII en su [página web](http://www.sii.cl/estadisticas/empresas_tamano_ventas.htm) a la fecha, la cantidad de empresas por tramo se invierte con relación al número de reclamos recibido por SERNAC (ver tabla \@ref(tab:n-empresas-tramo)). Es decir, las empresas de menor tamaño, que son la gran mayoría, reciben la menor cantidad de reclamos. Las razones de esto pueden ser muchas, pero el análisis de los motivos se escapa de los objetivos de este estudio.
+
+```{r, echo=FALSE, results='asis'}
+n_empresas_tramo <- SII_sizes[-14, list(N=sum(N_EMPRESAS)), by="TRAMO"]
+mtable <- knitr::kable(n_empresas_tramo, booktabs=TRUE, label="n-empresas-tramo", 
+                       caption="Número de empresas según tramo de ventas.",
+                       col.names=c("Tramo", "Número"))
+kable_styling(mtable, latex_options = c("striped", "scale_down"), bootstrap_options=c("condensed", "responsive"))
+```
+
+
+```{r, echo=FALSE, eval=FALSE}
+costo_reclamo <- merge(SII_sizes[-14, list(VENTAS_MILES_UF=sum(MONTO_MILES_UF)), by="TRAMO"],
+                       datosPlotsSII[, list(N=sum(N)), by="TRAMO"])
+costo_reclamo[, list(costo=N/VENTAS_MILES_UF), by="TRAMO"]
+```
+
+
+En la figura \@ref(fig:total-por-region) se pueden apreciar el total de reclamos al año por región^[Para obtener el total anual, el número de reclamos totales se dividió por 10.5, que es el número de períodos totales que se tienen hasta la fecha (año 2010 a mediados del año 2020).]. En números absolutos, la Región Metropolitana es la que presenta la mayor cantidad de reclamos. Si se tiene en cuenta la población^[Utilizando datos del CENSO 2017, se genera una tasa por cada 1.000 habitantes, diviendo el número de reclamos de la región por la población: $\bar{N}_{región} / pob_{región} * 1000$], 
+
+
+```{r total-por-region, echo=FALSE, fig.cap="Número de reclamos al año por región (contempla datos desde enero del 2010 a junio del 2020).", fig.width=8}
+anios <- 10.5
+color1 <- "#e31a1c"
+total_region <- merge(comunas_poblacion[, list(Poblacion=sum(Poblacion2017)), by=cut_region], 
+                      datosPlots[, list(N=sum(N)), by=cut_region], all=T)
+total_region[, N_prop:=round(N/Poblacion*1000/anios, 1)]
+bar_data <- matrix(c(total_region$N/1000/anios, total_region$N_prop*5), nrow=2, byrow=T, 
+                   dimnames=list(c("N", "N_prop"), total_region$cut_region))
+colnames(bar_data)[1] <- "NA"
+
+par(mar=c(5.1, 4.1, 2.1, 5.1))
+at4 <- pretty(bar_data["N_prop", ])
+bp <- barplot(bar_data, las=1, ylab="Número de reclamos por año (miles)", xlab="Código regional", 
+              beside=T, col=c("grey40", color1))
+axis(4, at4, at4/5, las=2, col=color1, col.axis=color1)
+abline(h=at4, lty=2, col=rgb(0, 0, 1, .2))
+mtext("Número de reclamos al año por cada 1.000 habitantes", 4, 2, col=color1)
+```

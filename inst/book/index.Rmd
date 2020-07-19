@@ -53,10 +53,14 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 
 library(data.table)
 load("extra/extraData.RData") # datosPlots, comunas
+niveles_region <- sprintf("%02d", c(15, 1, 2, 3, 4, 5, 13, 6, 7, 16, 8, 9, 14, 10, 11, 12))
 datosPlots[, date:=as.Date(paste0(date, "-15"))]
+datosPlots[, cut_region:=factor(cut_region, levels=niveles_region)]
 comunas_poblacion <- data.table::fread("extra/comunas_poblacion.csv") # al 2017, wiki
 comunas_poblacion[, CUT:=sprintf("%05d", CUT)]
-comunas_poblacion[, c("cut_region", "cut_provincia"):=list(substr(CUT, 1, 2), substr(CUT, 1, 3))]
+comunas_poblacion[, c("cut_region", "cut_provincia"):=list(factor(substr(CUT, 1, 2), levels=niveles_region), 
+                                                           substr(CUT, 1, 3))]
+comunas_poblacion[, Poblacion2017:=as.numeric(sub(" ", "", Poblacion2017))]
 SII_sizes <- data.table::fread("extra/SII_company_sizes.csv") # al 2016 (año 2015), sII
 ```
 

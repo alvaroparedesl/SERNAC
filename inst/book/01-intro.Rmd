@@ -26,7 +26,7 @@ Otra dificultad, es que si bien SERNAC continuamente realiza un monitoreo a los 
 ### Objetivos específicos {-}
 
 * Estandarizar y homologar las bases de datos.
-* Generar funciones que permitan agregar nuevos datos a la base de datos.
+* Desarrollar un algoritmo que permita ir agregando nuevos registros a la base de datos.
 * Desarrollar una metodología que permita comparar y encontrar aquellas agrupaciones que sobrepasen límites establecidos.
 <!-- * Permitir visualizar los resultados de manera clara y expedita. -->
 * Implementar una librería de R que condense los análisis realizados.
