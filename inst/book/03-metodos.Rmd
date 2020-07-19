@@ -46,7 +46,7 @@ Específicamente, los pasos son los siguientes:
 1. Se revisa la serie y se completan las fechas faltantes (periodos en que no hubieron reclamos). Para el número de reclamos, se rellena con 0s, para los otros cálculos, se mantiene el valor faltante (`NA`).
 1. Se ordena la serie y se retornan las agrupaciones pertinentes.
 
-### Ejemplo
+### Ejemplo de agrupamiento en R
 
 En este ejemplo se definen las *Clases* mencionadas anteriormente. Es importante fijarse en el orden y que para cada clase se debe incluir un nombre corto (sin espacios, ni carácteres latinos); en este ejemplo, dichos nombres corresponden a `mercado`, `industria`, `proveedor` y `producto`.
 
@@ -83,7 +83,7 @@ outt <- computar_reclamos(dbfM[estado_caso_nombre=="CERRADO"],
 * `rango_fechas` define el rango de fechas (min|inicio, max|término) en que un reclamo es considerado (usando `caso_creacion_fecha`). Usar `NA` en uno o ambos extremos, para usar el mínimo y/o máximo de observaciones posibles. Las fechas deben estar en formato 'YYYY-MM-DD' (año completo, mes en número y día).
 
 
-## Búsqueda de valores atípicos
+## Búsqueda de valores atípicos {#busqueda-valores-atipicos}
 
 ### Cálculos previos
 
@@ -160,7 +160,7 @@ outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15", ti
 ```
 
 
-## Anexo metodológico {.tabset .tabset-fade .tabset-pills}
+## Anexo metodológico {#anexo-metodologico}
 
 ### Cálculo del rango intercuantil {#rango-intercuantil}
 

@@ -18,6 +18,10 @@ Esto cobra mayor relevancia si se considera que SERNAC recibe entre 300.000 y 40
 
 El gran volumen de datos que se maneja, y que debería ir aumentando en el tiempo, hace imposible la tarea de revisión uno a uno de cada una de estas problemáticas. Este tipo de situaciones hacen que sea imperativo el desarrollo de herramientas que asistan a los profesionales del área en el monitoreo y persecución de los reclamos, especialmente en los casos más delicados.
 
+Uno de los mayores desafíos para llevar a cabo la tarea, fue consolidar la base de datos. Los primeros registros proporcionados parten el año 2010, y se extienden hasta el presente (la actualización de la base de datos suele ser cada 15 días). Las bases de datos fueron proporcionada en formato Excel, a razón de uno o dos archivos por año. Cada cierto tiempo, estas bases cambian el número de columnas y también el nombre de variables de interés, lo cual dificultó la tarea de consolidación de las bases de datos. A futuro esto no debiera revestir mayores problemas, dado que esta es una de las materias que se están modernizando en el servicio.
+
+Otra dificultad, es que si bien SERNAC continuamente realiza un monitoreo a los reclamos, no existe una variable respuesta establecida como para hacer comparaciones, debido a las grandes complejidades que el proceso conlleva, por ser un problema supeditado a múltiples factores/variables. Por ello es que la validación del desempeño de la herramienta queda supedidata al juicio experto de los profesionales del SERNAC y no es posible calcular las típicas métricas de desempeño (precisión, sensibilidad, curva ROC, entre otras).
+
 
 ### Objetivo general {-}
 
@@ -32,7 +36,7 @@ El gran volumen de datos que se maneja, y que debería ir aumentando en el tiemp
 * Implementar una librería de R que condense los análisis realizados.
 
 
-## Preparación/Instalación
+## Preparación/Instalación {#preparacion-instalacion}
 
 Primero descargar R desde <https://cran.r-project.org/bin/windows/base/>; luego instalar RStudio desde <https://rstudio.com/products/rstudio/download/#download>
 

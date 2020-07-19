@@ -14,7 +14,7 @@ shinyPlot(outt)
 A continuación se presenta una descripción de las funcionalidades del visor y de como es posible extraer la información generada por la librería.
 
 
-## Visor de gráficos
+## Visor de gráficos {#visor-graficos}
 
 El visor despliega una ventana independiente, que puede ser accedida también desde un navegador web (esta última opción es más recomendable). En este se puede ver un panel lateral con opciones y una ventana principal con los diferentes gráficos de resultados.
 

@@ -24,6 +24,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
+# source("extra/funciones.R", local=TRUE)
 options(
   htmltools.dir.version = FALSE, formatR.indent = 2,
   width = 55, digits = 4, warnPartialMatchAttr = FALSE, warnPartialMatchDollar = FALSE
@@ -81,6 +82,8 @@ Esta herramienta está construida en el lenguaje de programación `R` [@R-base] 
 Se eligió este lenguaje de desarrollo por sobre otros, debido a que presenta una mayor facilidad de aprendizaje, es de libre uso y tiene un buen compromiso entre velocidad, facilidad y portabilidad.
 
 Esta librería se presenta como una herramienta de apoyo en la gestión de los reclamos, y no pretende bajo ninguna medida, reemplazar el factor humano y mucho menos el juicio experto de las personas que trabajan en dicha materias. Es justamente todo lo contrario, para que funcione correctamente, es necesaria la retroalimentación constante de parte de los profesionales del servicio.
+
+El código fuente de la librería, así como de este manuscrito, está disponible en: <https://github.com/alvaroparedesl/SERNAC>.
 
 <!-- ![Creative Commons License](images/by-nc-sa.png) -->
 

@@ -13,7 +13,7 @@ El proceso de homologación se subdivide en varias etapas, que serán las seccio
 Se generó un proceso lo más flexible posible, que permite agregar nuevos motivos legales y nuevas variables de trabajo que estén en la base de datos, por medio de archivos Excel (para facilitar su manipulación por parte del usuario final). Conforme la base de datos va creciendo en tamaño, algunas de estas características podrían no funcionar adecuadamente, por lo cual es crucial entender bien este proceso y vigilar su correcto funcionamiento, a través de las herramientas aquí proporcionadas y por los mismos avisos que entrega el código conforme se va ejecutando.
 
 
-## Variables de interés
+## Variables de interés {#variables-interes}
 
 El primer paso, y el más importante, es definir qué variables se utilizarán (cada variable hace referencia a una columna de la base de datos).
 
@@ -40,9 +40,9 @@ Una nueva tabla es retornada con los nombres de las columnas modificadas de acue
 Basta con añadir una fila extra al archivo, indicando el nombre original, su nuevo nombre (puede ser el mismo) y el valor $1$ en al columna, bajo las columnas `original`, `nuevo` y `Uso` respectivamente. Otra información anexa de interés (como por qué se agrega, cuándo, etc) puede ser añadida en otras columnas sin problema, puesto que serán ignoradas al momento de hacer la conversión.
 
 
-### Resumen de variables
+### Resumen de variables {#seccion-resumen-variables}
 
-Por ahora, las variables se consideran son las siguientes (como se mencionó anteriormente, se pueden agregar o quitar variables):
+Las variables que se consideraron son las siguientes (como se mencionó previamente, se pueden agregar o quitar):
 
 1. `caso_cierre_fecha`: fecha cuando se cerró el reclamo. Corresponde a los nombres originales de `caso_fecha_cierre` y `fecha_resultado`.
 1. `caso_creacion_fecha`: fecha cuando se creó el reclamo. Corresponde al nombre original de `caso_fecha_creacion`. 
@@ -63,7 +63,7 @@ Por ahora, las variables se consideran son las siguientes (como se mencionó ant
 
 Los formatos para las variables de fechas son `YYYY-mm-dd %H:%M:%S` o `YYYY-mm-dd %H:%M`. `YYYY` corresponde al año completo (ej: 1998), `mm` al mes en formato númerico (01 a 12), 'dd' al día del mes (01 a 31), `%H` a la hora (00 a 23), `%M` a los minutos (00 a 59) y `%S` a los segundos (00 a 59). Mayor información sobre los formatos de fechas pueden ser encontrados en <https://stat.ethz.ch/R-manual/R-devel/library/base/html/strptime.html>.
 
-## Homologación en base a variables externas
+## Homologación en base a variables externas {#homologacion-variables-externas}
 
 Una primera fase está definida por la homologación que se realiza en base a fuentes de información externas a la base de datos de reclamos de SERNAC. Algunas de ellas guardan relación directa, pero otras corresponden a información proveniente de otros organismos del Estado.
 
@@ -120,7 +120,7 @@ También se rectifican las fechas, por eso la importancia de que `caso_creacion_
 Finamente se calcula una nueva variable: `reclamo_acogido`. En ella se recoge si el reclamo fue o no acogido por el proveedor (`PROVEEDOR ACOGE` es 1 y cualquier otro resultado, 0). Esta variable será utilizada con posterioridad para calcular la proporción de reclamos acogidos (ver sección \@ref(seccion-agrupacion)).
 
 
-## Ejemplo
+## Ejemplo homologación R {#ejemplo-homologacion-r}
 
 ```{r, eval=FALSE}
 setwd("ruta a mi directorio") # reemplazar por la ruta propia
@@ -154,8 +154,11 @@ knitr::include_graphics("images/homologacion_warning.png")
 ```
 
 
+## Análisis exploratorio {#analisis-exploratorio}
 
-## Análisis exploratorio
+Las variables de interés, a excepción de las fechas, son de tipo categórica (como quedó manifestado en la sección \@ref(seccion-resumen-variables)). Por dicho motivo, realizar un análisis por cada una de ellas no es de mucha utilidad, sobre todo si se considera que el estado actual de la base de datos, no es el que se utilizará para conducir el estudio. Para que los datos cobren sentido, es necesario agruparlos por alguna unidad de tiempo definida (sección \@ref(seccion-seccion-agrupacion)).
+
+Por dicha razón, a continuación se presentarán algunos resumenes de datos agregados, que son de particular interés para contextualizar los reclamos recibidos por SERNAC.
 
 Reclamos por año totales
 

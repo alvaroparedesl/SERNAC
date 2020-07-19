@@ -1,4 +1,5 @@
 quiet = "--quiet" %in% commandArgs(FALSE)
+upload = "--upload" %in% commandArgs(FALSE)
 formats = commandArgs(TRUE)
 travis = !is.na(Sys.getenv('CI', NA))
 
@@ -43,3 +44,15 @@ unlink('bookdown.log')
 # if (length(formats) > 1) bookdown::publish_book()
 
 # setwd(owd)
+
+if (upload) {
+  print('Uploading files to host! (it will take some time...)')
+  source("extra/_mysite.R", local=TRUE)
+  myopts <- RCurl::curlOptions(netrc=TRUE, netrc.file="C:/Users/alvaro/_netrc")
+  files <- list.files("_book", recursive = T, full.names = F)
+  temp <- lapply(files, function(x){
+    RCurl::ftpUpload(paste0("_book/", x), paste0(mysite, x), .opts=myopts)
+  })
+  print("OK?")
+}
+

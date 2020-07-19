@@ -374,4 +374,22 @@ readxl::read_excel(arbol_motivo_legal, 'ACTUAL')
 # dbfM <- depurar_ruts(dbfM, criterio='reciente')
 ```
 
+```{r, eval=FALSE, echo=FALSE}
+#### EXTRAS PARA EL BOOK
+dbfM[, cut_region:=substr(cut_comuna, 1, 2)]
+dbfM[, cut_provincia:=substr(cut_comuna, 1, 3)]
+datosPlots <- dbfM[, list(N=.N), by=.(date = strftime(caso_creacion_fecha, "%Y-%m"), 
+                                      proveedor_mercado_nombre, 
+                                      proveedor_mercado_categoria_nombre,
+                                      consumidor_genero,
+                                      tramo_ventas,
+                                      cut_region)]
+comunas <- readxl::read_excel(codigos_comunales)
+save(datosPlots, comunas, file="SERNAC/inst/book/extra/extraData.RData")
+# regiones, comunas archivo
+# población
+
+```
+
+
 # Referencias
