@@ -3,7 +3,8 @@
 #'
 #' @param obj Objeto de la clase reclamos.
 #'
-#' @importFrom plotly renderPlotly plotlyOutput plot_ly layout
+#' @importFrom plotly renderPlotly plotlyOutput plot_ly layout config
+#' @importFrom data.table setorder
 #' @importFrom DT datatable renderDataTable dataTableOutput
 #' @importFrom shiny shinyApp runApp fluidRow column tableOutput renderTable selectizeInput selectInput renderUI HTML htmlOutput icon h3
 #' @import shinydashboard
@@ -15,26 +16,72 @@ shinyPlot <- function(obj) {
   ip <- system("ipconfig", intern=TRUE)
   port <- 6742
 
-  plotSeries1 <- function(ind, data, upDir, title="Ranking ascendente de alertas (top %s)", xlab="Tiempo", ylab="Número de reclamos") {
+  #--------------------------- MAIN FUNCTIONS -----------------------------------------------------------------#
+  plotSeries1 <- function(ind, data, upDir, figid, title="Ranking ascendente de alertas (top %s)", xlab="Tiempo", ylab="Número de reclamos") {
     fechas <- ind$dates
     clases <- ind$class
     sele <- data$reporte$tops[clase %in% clases & t_observado %in% as.Date(fechas) & up == upDir]
-    mdat <- data$reclamos[[clases]]$datos[metrics=='N' & t <= as.Date(fechas)]
+    setorder(sele, posicion)
     cols <- c(data$Clases[1:which(clases == names(data$Clases))], 'variable', 'variable_valor')
     what <- unlist(sele[, do.call(paste, c(.SD, sep=" | ")), .SDcols=cols])
-    what <- factor(what, ordered=T)
+    what <- factor(what, levels=what)
+    # mdat la serie completa de reclamos
+    mdat <- data$reclamos[[clases]]$datos[metrics=='N' & t <= as.Date(fechas)]
     mdat[, supid:=factor(do.call(paste, c(.SD, sep=" | ")), levels=what), .SDcols=cols]
     mdat <- mdat[supid %in% what]
+    # mdat2 es para agregar puntaje
+    mdat2 <- data$reporte$serie[clase %in% clases & t_observado %in% as.Date(fechas) & t %in% as.Date(fechas) & up == upDir,
+                                c("posicion", cols, 'outlier_scorein', 'outlier_scoreex'), with=F]
+    mdat2 <- setorder(unique(mdat2), posicion)
+    mdat2[, supid:=factor(do.call(paste, c(.SD, sep=" | ")), levels=what), .SDcols=cols]
+    mdat2 <- mdat2[supid %in% what]
+    if (nrow(sele) != nrow(mdat2)) stop("Incosistencia de dimensiones. Revisar la asignación de puntaje y número de ranking en plotly.")
+    levels(mdat$supid) <- sprintf('%s. [%s, %s] %s', 1:length(levels(mdat$supid)),
+                                         round(mdat2$outlier_scorein, 2),
+                                         round(mdat2$outlier_scoreex, 2),
+                                         levels(mdat2$supid))
     xrange <- range(mdat$t, na.rm=T)
     yrange <- range(mdat$values_norm, na.rm=T)
     pl <- plot_ly(mdat, x = ~t, y=~values_norm, color =~supid, type="scatter", mode = "line",
                   colors = colorRampPalette(c("#a50026", "#ffff33", "#1f78b4"))(nrow(sele)) )
-    layout(pl, title = sprintf(title, nrow(sele)),
-           xaxis = list(range = xrange, title = xlab),
-           yaxis = list(range = yrange, title = ylab),
-           showlegend=TRUE, legend = list(font = list(size = 10)))
+    ly <- layout(pl, title = sprintf(title, nrow(sele)),
+                 xaxis = list(range = xrange, title = xlab),
+                 yaxis = list(range = yrange, title = ylab),
+                 showlegend=TRUE, legend = list(font = list(size = 10))
+          )
+    # hide_show_legend <- list(
+    #   name = "Hide/Show Legend",
+    #   icon = list(path="M 30 10 V 60 L 35 0 L 0 -10 L -25 0 L 0 -50 L -10 0 Z",
+    #               transform = 'matrix(1 0 0 1 -2 -2) scale(0.7)',
+    #               options = 'animationData: animationData.default'),
+    #   click = htmlwidgets::JS(
+    #     sprintf("function(gd){
+    #       gd.layout.showlegend = !gd.layout.showlegend;
+    #       Plotly.relayout('%s', gd);
+    #     }", figid)
+    #   )
+    # )
+    config(ly, displaylogo = FALSE) #, modeBarButtonsToAdd = list(octocat))
   }
 
+  plotSeries2 <- function(ind, data, upDir, title="Categoría: %s | %s", xlab="Tiempo", ylab="Número") {
+    fechas <- ind$dates
+    clases <- ind$class
+    pos <- ind$rank_pos
+    db <- data$reporte
+    mdat <- db$serie[posicion %in% pos & clase %in% clases & t_observado %in% as.Date(fechas) & up == upDir]
+    xrange <- range(mdat$t, na.rm=T)
+    yrange <- range(mdat$value, na.rm=T)
+    # mdat[is.na(values), values:=0]
+    # linea por el 0y linea de tendencia
+    pl <- plot_ly(mdat, x = ~t, y=~values, color =~metrics, type="scatter", mode = "line", colors = "Paired")
+    ly <- layout(pl, title = sprintf(title, unique(mdat$variable), unique(mdat$variable_valor)),
+                 xaxis = list(range = xrange, title = xlab), hovermode = "x unified",
+                 yaxis = list(range = yrange, title = ylab))
+    config(ly, displaylogo = FALSE)
+  }
+
+  #--------------------------- SERVER -----------------------------------------------------------------#
   server <- function(input, output, session) {
 
     output$caption <- renderUI({
@@ -97,43 +144,26 @@ shinyPlot <- function(obj) {
     output$ruts2 <- renderDataTable(getRuts())
 
     output$plotl <- renderPlotly({
-      fechas <- input$dates
-      clases <- input$class
-      pos <- input$rank_pos
-      db <- obj$reporte
-      mdat <- db$serie[posicion %in% pos & clase %in% clases & t_observado %in% as.Date(fechas) & up == FALSE]
-      xrange <- range(mdat$t, na.rm=T)
-      yrange <- range(mdat$value, na.rm=T)
-      # mdat[is.na(values), values:=0]
-      pl <- plot_ly(mdat, x = ~t, y=~values, color =~metrics, type="scatter", mode = "line", colors = "Paired")
-      layout(pl, title = sprintf("Categoría: %s | %s", unique(mdat$variable), unique(mdat$variable_valor)),
-               xaxis = list(range = xrange, title = "Tiempo"), hovermode = "x unified",
-               yaxis = list(range = yrange, title = "Número"))
-      # linea por el 0y linea de tendencia
+      plotSeries2(input, obj, upDir=FALSE,
+                  title="Categoría: %s | %s",
+                  xlab="Tiempo", ylab="Número")
     })
+
     output$plotr <- renderPlotly({
-      fechas <- input$dates
-      clases <- input$class
-      pos <- input$rank_pos
-      db <- obj$reporte
-      mdat <- db$serie[posicion %in% pos & clase %in% clases & t_observado %in% as.Date(fechas) & up == TRUE]
-      xrange <- range(mdat$t, na.rm=T)
-      yrange <- range(mdat$value, na.rm=T)
-      pl <- plot_ly(mdat, x = ~t, y=~values, color =~metrics, type="scatter", mode = "line", colors = "Paired")
-      layout(pl, title = sprintf("Categoría: %s | %s", unique(mdat$variable), unique(mdat$variable_valor)),
-               xaxis = list(range = xrange, title = "Tiempo"), hovermode = "x unified",
-               yaxis = list(range = yrange, title = "Número"))
+      plotSeries2(input, obj, upDir=TRUE,
+                  title="Categoría: %s | %s",
+                  xlab="Tiempo", ylab="Número")
     })
 
     output$rankplotr <- renderPlotly({
-      plotSeries1(input, obj, upDir = TRUE,
+      plotSeries1(input, obj, upDir = TRUE, figid="rankplotr",
                   title="Ranking ascendente de alertas (top %s)",
                   xlab="Tiempo",
                   ylab="Número de reclamos (estandarizado)")
     })
 
     output$rankplotl <- renderPlotly({
-      plotSeries1(input, obj, upDir = FALSE,
+      plotSeries1(input, obj, upDir = FALSE, figid="rankplotl",
                   title="Ranking descendentes de alertas (top %s)",
                   xlab="Tiempo",
                   ylab="Número de reclamos (estandarizado)")
@@ -141,7 +171,7 @@ shinyPlot <- function(obj) {
   }
 
 
-
+  #--------------------------- UI -----------------------------------------------------------------#
   ui <- dashboardPage(
     skin = "green",
     dashboardHeader(title = 'Semáforo SERNAC', disable = F),
@@ -223,6 +253,7 @@ shinyPlot <- function(obj) {
     )
   )
 
+  #--------------------------- APP -----------------------------------------------------------------#
   app <- shinyApp(ui = ui, server = server)
   runApp(app, port=port, host = getOption("shiny.host", "0.0.0.0"))
 }
