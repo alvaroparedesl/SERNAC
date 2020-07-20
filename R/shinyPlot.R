@@ -15,6 +15,26 @@ shinyPlot <- function(obj) {
   ip <- system("ipconfig", intern=TRUE)
   port <- 6742
 
+  plotSeries1 <- function(ind, data, upDir, title="Ranking ascendente de alertas (top %s)", xlab="Tiempo", ylab="Número de reclamos") {
+    fechas <- ind$dates
+    clases <- ind$class
+    sele <- data$reporte$tops[clase %in% clases & t_observado %in% as.Date(fechas) & up == upDir]
+    mdat <- data$reclamos[[clases]]$datos[metrics=='N' & t <= as.Date(fechas)]
+    cols <- c(data$Clases[1:which(clases == names(data$Clases))], 'variable', 'variable_valor')
+    what <- unlist(sele[, do.call(paste, c(.SD, sep=" | ")), .SDcols=cols])
+    what <- factor(what, ordered=T)
+    mdat[, supid:=factor(do.call(paste, c(.SD, sep=" | ")), levels=what), .SDcols=cols]
+    mdat <- mdat[supid %in% what]
+    xrange <- range(mdat$t, na.rm=T)
+    yrange <- range(mdat$values_norm, na.rm=T)
+    pl <- plot_ly(mdat, x = ~t, y=~values_norm, color =~supid, type="scatter", mode = "line",
+                  colors = colorRampPalette(c("#a50026", "#ffff33", "#1f78b4"))(nrow(sele)) )
+    layout(pl, title = sprintf(title, nrow(sele)),
+           xaxis = list(range = xrange, title = xlab),
+           yaxis = list(range = yrange, title = ylab),
+           showlegend=TRUE, legend = list(font = list(size = 10)))
+  }
+
   server <- function(input, output, session) {
 
     output$caption <- renderUI({
@@ -75,9 +95,7 @@ shinyPlot <- function(obj) {
 
     output$ruts1 <- renderDataTable(getRuts())
     output$ruts2 <- renderDataTable(getRuts())
-    # output$ranking <- renderDataTable({
-    #   datatable(obj$reporte$tops)
-    # })
+
     output$plotl <- renderPlotly({
       fechas <- input$dates
       clases <- input$class
@@ -106,45 +124,23 @@ shinyPlot <- function(obj) {
                xaxis = list(range = xrange, title = "Tiempo"), hovermode = "x unified",
                yaxis = list(range = yrange, title = "Número"))
     })
+
     output$rankplotr <- renderPlotly({
-      fechas <- input$dates
-      clases <- input$class
-      sele <- obj$reporte$tops[clase %in% clases & t_observado %in% as.Date(fechas) & up == TRUE]
-      mdat <- obj$reclamos[[clases]]$datos[metrics=='N' & t <= as.Date(fechas)]
-      cols <- c(obj$Clases[1:which(clases == names(obj$Clases))], 'variable', 'variable_valor')
-      what <- unlist(sele[, do.call(paste, c(.SD, sep=" | ")), .SDcols=cols])
-      what <- factor(what, ordered=T)
-      mdat[, supid:=factor(do.call(paste, c(.SD, sep=" | ")), levels=what), .SDcols=cols]
-      mdat <- mdat[supid %in% what]
-      xrange <- range(mdat$t, na.rm=T)
-      yrange <- range(mdat$values_norm, na.rm=T)
-      # print(sele)
-      pl <- plot_ly(mdat, x = ~t, y=~values_norm, color =~supid, type="scatter", mode = "line",
-                    colors = colorRampPalette(c("#a50026", "#ffff33", "#1f78b4"))(nrow(sele)) ) #"Paired")
-      layout(pl, title = sprintf("Ranking ascendente de alertas (top %s)", nrow(sele)),
-             xaxis = list(range = xrange, title = "Tiempo"),
-             yaxis = list(range = yrange, title = "Número de reclamos (estandarizado)"))
+      plotSeries1(input, obj, upDir = TRUE,
+                  title="Ranking ascendente de alertas (top %s)",
+                  xlab="Tiempo",
+                  ylab="Número de reclamos (estandarizado)")
     })
+
     output$rankplotl <- renderPlotly({
-      fechas <- input$dates
-      clases <- input$class
-      sele <- obj$reporte$tops[clase %in% clases & t_observado %in% as.Date(fechas) & up == FALSE]
-      mdat <- obj$reclamos[[clases]]$datos[metrics=='N' & t <= as.Date(fechas)]
-      cols <- c(obj$Clases[1:which(clases == names(obj$Clases))], 'variable', 'variable_valor')
-      what <- unlist(sele[, do.call(paste, c(.SD, sep=" | ")), .SDcols=cols])
-      what <- factor(what, ordered=T)
-      mdat[, supid:=factor(do.call(paste, c(.SD, sep=" | ")), levels=what), .SDcols=cols]
-      mdat <- mdat[supid %in% what]
-      xrange <- range(mdat$t, na.rm=T)
-      yrange <- range(mdat$values_norm, na.rm=T)
-      # print(sele)
-      pl <- plot_ly(mdat, x = ~t, y=~values_norm, color =~supid, type="scatter", mode = "line",
-                    colors = colorRampPalette(c("#a50026", "#ffff33", "#1f78b4"))(nrow(sele)) ) #"Paired")
-      layout(pl, title = sprintf("Ranking descendente de alertas (top %s)", nrow(sele)),
-             xaxis = list(range = xrange, title = "Tiempo"),
-             yaxis = list(range = yrange, title = "Número de reclamos (estandarizado)"))
+      plotSeries1(input, obj, upDir = FALSE,
+                  title="Ranking descendentes de alertas (top %s)",
+                  xlab="Tiempo",
+                  ylab="Número de reclamos (estandarizado)")
     })
   }
+
+
 
   ui <- dashboardPage(
     skin = "green",
