@@ -84,7 +84,7 @@ mtable <- knitr::kable(motivos_legales[sample(1:nrow(motivos_legales), 4),
              col.names=c("MERCADO", "MOTIVO LEGAL", "CATEGORIA LEGAL", "PROPUESTA DE FUSION MOTIVO LEGAL", "PROPUESTA DE FUSION CATEGORIA LEGAL"),
              label="bd-columnas-motivos-legales",
              caption="Ejemplo de motivos legales y sus respectivas homologaciones.")
-kable_styling(mtable, latex_options = c("striped", "scale_down"), bootstrap_options=c("condensed", "responsive"))
+kable_styling(mtable, latex_options = c("striped", "scale_down"), bootstrap_options=c("condensed", "responsive"), font_size = 10)
 ```
 
 Motivos legales que no estén en este árbol, son añadidos al archivo `arbol_mercado_a_corregir.csv` que se genera en el directorio desde donde se está ejecutando el programa. Este archivo puede ser explorado y revisado desde Excel, para luego hacer las modificaciones pertinentes al `arbol_de_mercado` y correr el proceso nuevamente.
@@ -215,7 +215,8 @@ Cabe destacar, que para el año 2016 (año tributario 2015), que es la última i
 n_empresas_tramo <- SII_sizes[-14, list(N=sum(N_EMPRESAS)), by="TRAMO"]
 mtable <- knitr::kable(n_empresas_tramo, booktabs=TRUE, label="n-empresas-tramo", 
                        caption="Número de empresas según tramo de ventas.",
-                       col.names=c("Tramo", "Número"))
+                       col.names=c("Tramo", "Número"),
+                       format.args = list(big.mark = "."))
 kable_styling(mtable, latex_options = c("striped", "scale_down"), bootstrap_options=c("condensed", "responsive"))
 ```
 
@@ -227,7 +228,7 @@ costo_reclamo[, list(costo=N/VENTAS_MILES_UF), by="TRAMO"]
 ```
 
 
-En la figura \@ref(fig:total-por-region) se pueden apreciar el total de reclamos al año por región^[Para obtener el total anual, el número de reclamos totales se dividió por 10.5, que es el número de períodos totales que se tienen hasta la fecha (año 2010 a mediados del año 2020).]. En números absolutos, la Región Metropolitana es la que presenta la mayor cantidad de reclamos. Si se tiene en cuenta la población^[Utilizando datos del CENSO 2017, se genera una tasa por cada 1.000 habitantes, diviendo el número de reclamos de la región por la población: $\bar{N}_{región} / pob_{región} * 1000$], 
+En la figura \@ref(fig:total-por-region) se pueden apreciar el total de reclamos al año por región^[Para obtener el total anual, el número de reclamos totales se dividió por 10.5, que es el número de períodos totales que se tienen hasta la fecha (año 2010 a mediados del año 2020): $\bar{N}_{región} = N_{región} / 10.5$]. En números absolutos, la Región Metropolitana (13va) es la que presenta la mayor cantidad de reclamos. Si se tiene en cuenta la población^[Utilizando datos del CENSO 2017, se genera una tasa por cada 1.000 habitantes, diviendo el número de reclamos de la región por la población: $\bar{N}_{región} / pob_{región} * 1000$], la región que presenta más reclamos al año, es la Región de Atacama (3era), con poco más de 6 reclamos por cada 1.000 habitantes al año. Le sigue la Región de Aisén (11va), y luego la Región de Arica (15va), mientras que la Región Metropolitana recién aparece en el cuarto lugar.
 
 
 ```{r total-por-region, echo=FALSE, fig.cap="Número de reclamos al año por región (contempla datos desde enero del 2010 a junio del 2020).", fig.width=8}
@@ -247,4 +248,18 @@ bp <- barplot(bar_data, las=1, ylab="Número de reclamos por año (miles)", xlab
 axis(4, at4, at4/5, las=2, col=color1, col.axis=color1)
 abline(h=at4, lty=2, col=rgb(0, 0, 1, .2))
 mtext("Número de reclamos al año por cada 1.000 habitantes", 4, 2, col=color1)
+```
+
+Es complejo desglosar otras variables debido a la cantidad de valores que tiene cada una, pero en la tabla \@ref(tab:n-reclamos-anio) se pueden apreciar las industrias (una de las más importantes) que presentan un mayor número de reclamos según el año^[El año 2020 sólo considera hasta mediados de junio.]. La banca, las tarjetas de multitiendas y las corredoras de seguros, son las industrias que se llevan la mayor cantidad de reclamos (aunque también son parte de las industrias más grandes).
+
+```{r, echo=FALSE, results='asis'}
+n_reclamos_anio <- data.table::dcast(datosPlots, proveedor_mercado_nombre + proveedor_mercado_categoria_nombre ~ I(strftime(date, "%Y")),
+                                      sum, value.var="N")
+n_reclamos_anio <- n_reclamos_anio[!is.na(proveedor_mercado_categoria_nombre)]
+data.table::setorder(n_reclamos_anio, proveedor_mercado_nombre, proveedor_mercado_categoria_nombre)
+mtable <- knitr::kable(n_reclamos_anio, booktabs=TRUE, label="n-reclamos-anio", 
+                       caption="Número reclamos al año, según mercado e industria.",
+                       col.names=c("Mercado", "Industria", 2010:2020),
+                       format.args = list(big.mark = "."))
+kable_styling(mtable, latex_options = c("striped", "scale_down"), bootstrap_options=c("condensed", "responsive"), font_size = 8)
 ```

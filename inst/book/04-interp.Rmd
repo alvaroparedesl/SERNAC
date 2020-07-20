@@ -1,5 +1,9 @@
 # Interpretación {#capitulo-interpretacion}
 
+::: {.rmdcaution .caution data-latex="{caution}"}
+Este sección aún está en etapa de borrador.
+:::
+
 Una vez que se han definido las características y el tipo de ranking que se calcula (ver \@ref(seccion-ranking)), se puede invocar un visor dinámico que permite explorar los resultados obtenidos. Esta herramienta es sólo para visualizar y no permite ningún tipo de manipulación o exportación de la información (para exportar los datos, ver la sección \@ref(seccion-exportar)).
 
 Para invocar el visor, se debe hacer de la siguiente forma (es necesario tener las librerías @R-shiny, @R-shinydashboard, @R-plotly y @R-DT):
@@ -40,9 +44,6 @@ En cada uno de los gráficos, cada línea representa la métrica que sobrepasó 
 
 ## Exportar información {#seccion-exportar}
 
-En xxxx_top_ranking_reclamos_caso_numero: hay que fijarse bien en `t`, `reclamo_ascendente`, `posicion`.
-
-
 Si se desea exportar tablas con los resultados, se puede hacer con:
   
 ```{r eval=FALSE}
@@ -55,4 +56,22 @@ El comando anterior exportará archivos de texto en formato csv en inglés, cuya
 exportar(outt, que=c('ranking'), verbose=T, sep=";", dec=",")
 ```
 
-Dependiendo de la configuración del computador (normalmente el idioma), el archivo podrá ser abierto directamente en Excel sin mayores modificaciones (si la configuración/idioma del computador está en inglés y se abre un archivo exportado en formato inglés, abrirá sin problemas y lo mismo para el caso en español).
+Dependiendo de la configuración del computador (normalmente el idioma), el archivo podrá ser abierto directamente en Excel sin mayores modificaciones (si la configuración/idioma del computador está en inglés y se abre un archivo exportado en formato inglés, abrirá sin problemas y lo mismo para el caso en español). El programa escribirá un total de 8 archivos, a los cuales atepondrá la fecha y hora (en formato YYYY-mm-dd_HHMMSS) para evitar sobreescribir resultados anteriores.
+
+Algunas columnas que tienen en común todos estos archivos:
+
+1. `clase`: la *Clase* (sección \@ref(seccion-agrupacion)) a la que pertenece el registro.
+1. `up` o `reclamo_ascendente`: indica si es una alerta ascendente (`TRUE`) o descendente (`TRUE`).
+1. `posicion`: la posición del ranking (número entero del 1 a `topn`).
+1. `t`: el tiempo observado.
+
+Se exportarán los siguientes archivos (usando como ejemplo la fecha del 2020-07-17 a las 16:28:34:
+
+1. `2020-07-17_162834_top_ranking_formato_ancho.csv`: cada registro es una posición del ranking. `N_registros` con tiene el número de observaciones en el momento `t` y `metrics` indica las métricas que hicieron saltar la alerta.
+1. `2020-07-17_162834_top_ranking_formato_ancho_industria.csv`: cada registro es una posición del ranking. Similar al archivo anterior, pero está seleccionado sólo lo que es industria. Contiene mayor información sobre los parámetros para cálcular el ranking, así como el valor del percentil de cada métrica que fue clasificada como atípica.
+1. `2020-07-17_162834_top_ranking_formato_ancho_mercado.csv`: cada registro es una posición del ranking. Similar al archivo anterior, pero separado por industria y mercado.
+1. `2020-07-17_162834_top_ranking_formato_ancho_producto.csv`: cada registro es una posición del ranking. Similar al archivo anterior, pero separado por industria, mercado y proveedor.
+1. `2020-07-17_162834_top_ranking_formato_ancho_proveedor.csv`: cada registro es una posición del ranking. Similar al archivo anterior, pero separado por industria, mercado, proveedor y producto.
+1. `2020-07-17_162834_top_ranking_formato_largo.csv`: cada registro no es necesariamente una posición del ranking. Contiene la misma información que `top_ranking_formato_ancho.csv`, en formato largo en vez de ancho.
+1. `2020-07-17_162834_top_ranking_reclamos_caso_numero.csv`: cada registro es un reclamo. Estructura similar a `top_ranking_formato_ancho.csv`, pero cada observación pertenece a un cliente, y en vez de indicar las métricas que son atípicas, incluye la descripción del reclamo y el número de caso. Este formato es particularmente útil para SERNAC, ya que muestra todos los reclamos que constituyen una alerta.
+1. `2020-07-17_162834_top_ranking_serie_formato_largo.csv`: cada registro es una fecha agrupada. Contiene la información suficiente para hacer gráficos de las series temporales de aquellas agrupaciones que tenían un número de reclamos atípicos en el tiempo observado.

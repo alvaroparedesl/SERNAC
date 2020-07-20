@@ -31,9 +31,6 @@ datos_sii <- "DATA/SII/compilado_2018.csv"
 
 #-- Datos nuevos
 db1 <- "DATA/2019/B_Reclamos_al_31122019_extraida_24022020_liviana.csv"
-# db2 <- "DATA/2020/BD 2020 al 01062020.csv"
-# db2 <- "DATA/2020/B_Reclamos_al_15032020_extraida_16032020_amplia.csv"
-# db2 <- "DATA/2020/B_Reclamos_al_31052020_extraida_02062020_amplia.csv"
 db2 <- "DATA/2020/B_Reclamos_al_15062020_extraida_16062020_amplia.csv"
 
 dbfM <- agregar_dbs(base=dbf, 
@@ -49,7 +46,7 @@ dbfM <- agregar_dbs(base=dbf,
 
 ```{r, eval=FALSE}
 Clases <- c(mercado="proveedor_mercado_nombre",
-            industria="proveedor_mercado_categoria_nombre", # proveedor_mercado_nombre va antes
+            industria="proveedor_mercado_categoria_nombre",
             proveedor="proveedor_rut",
             producto="mercado_tipo_producto_nombre")
 
@@ -57,19 +54,14 @@ Clases <- c(mercado="proveedor_mercado_nombre",
 outt <- computar_reclamos(dbfM[estado_caso_nombre=="CERRADO"],
                           byCategoria=c("cierre_corto", 
                                         "motivo_legal_descripcion"),
-                          # "proveedor_mercado_nombre", 
-                          # "proveedor_mercado_categoria_nombre", 
-                          # "proveedor_rut"),
-                          # "cut_region"),
                           byClase=Clases,
                           lags=c(1:6, 12, 24), 
-                          cuantiles=c(.25, .75), # c(0, .25, .5, .75, 1), 
+                          cuantiles=c(.25, .75),
                           IQR=c(.25, .75),
                           coef=1.5,
                           n_min=50,
                           usar_tiempo=F,
                           rango_fechas = c("2016-01-01", NA) ) # caso_creacion_fecha
-outt
 
 topn <- 30
 nmin <- 15
