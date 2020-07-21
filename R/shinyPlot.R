@@ -90,33 +90,46 @@ shinyPlot <- function(obj) {
       clases <- input$class
       pos <- input$rank_pos
       db <- obj$reporte
-      mdat <- db$serie[posicion %in% pos & clase %in% clases & t_observado %in% as.Date(fechas)]
+      mdat <- db$serie[posicion %in% pos & clase %in% clases & t_observado %in% as.Date(fechas) & t %in% as.Date(fechas)]
       ups <- c()
       dows <- c()
       ups_score <- NA
       dows_score <- NA
       for (i in names(obj$Clases)) {
-        tp <- unique(mdat[up == T, c(obj$Clases[i], 'outlier_scorein', 'outlier_scoreex'), with=F])
-        if (!is.na(tp)[1]){
-          ups <- c(ups,   sprintf("<b>%s</b> [<i>%s</i>]: %s", i, obj$Clases[i], paste0(tp[, 1], collapse=", ")))
-          if (is.na(ups_score)[1]) {
-            ups_score <- round(unlist(c(tp[, 2], tp[, 3])), 3)
-          }
-        }
-        tp <- unique(mdat[up == F, c(obj$Clases[i], 'outlier_scorein', 'outlier_scoreex'), with=F])
-        if (!is.na(tp)[1]){
-          dows <- c(dows, sprintf("<b>%s</b> [<i>%s</i>]: %s", i, obj$Clases[i], paste0(tp[, 1], collapse=", ")))
-          if (is.na(dows_score)[1]) {
-            dows_score <- round(unlist(c(tp[, 2], tp[, 3])), 3)
+        for (cond in c(T, F)) {
+          tp_ <- unique(mdat[up == cond, c(obj$Clases[i], 'outlier_scorein', 'outlier_scoreex'), with=F])
+          if (nrow(tp_) > 0) {
+            if (!is.na(tp_)[1]){
+              if (cond) {
+                ups <- c(ups, sprintf("<b>%s</b> [<i>%s</i>]: %s", i, obj$Clases[i], paste0(tp_[, 1], collapse=", ")))
+                if (is.na(ups_score)[1]) {
+                  ups_score <- round(unlist(c(tp_[, 2], tp_[, 3])), 3)
+                }
+              } else {
+                dows <- c(dows, sprintf("<b>%s</b> [<i>%s</i>]: %s", i, obj$Clases[i], paste0(tp_[, 1], collapse=", ")))
+                if (is.na(dows_score)[1]) {
+                  dows_score <- round(unlist(c(tp_[, 2], tp_[, 3])), 3)
+                }
+              }
+            }
           }
         }
       }
 
-      out <- paste(sprintf("<b><ins>Alertas ascendentes</ins> [puntaje interno: %s| puntaje externo %s]:</b>", ups_score[1], ups_score[2]),
-                   paste0(ups, collapse=" || "),
-                   sprintf("<b><ins>Alertas descendentes</ins> [puntaje interno: %s| puntaje externo %s]:</b>", dows_score[1], dows_score[2]),
-                   paste0(dows, collapse=" || "),
-                   sep="<br/>")
+      if (!is.null(ups)) {
+        upsc <- paste(sprintf("<b><ins>Alertas ascendentes</ins> [puntaje interno: %s| puntaje externo %s]:</b>", ups_score[1], ups_score[2]),
+                      paste0(ups, collapse=" || "), sep="<br/>")
+      } else {
+        upsc <- ""
+      }
+      if (!is.null(dows)) {
+        dowsc <- paste(sprintf("<b><ins>Alertas descendentes</ins> [puntaje interno: %s| puntaje externo %s]:</b>", dows_score[1], dows_score[2]),
+                       paste0(dows, collapse=" || "), sep="<br/>")
+      } else {
+        dowsc <- ""
+      }
+
+      out <- paste(upsc, dowsc, sep="<br/>")
       HTML(out)
     })
 
@@ -174,7 +187,7 @@ shinyPlot <- function(obj) {
   #--------------------------- UI -----------------------------------------------------------------#
   ui <- dashboardPage(
     skin = "green",
-    dashboardHeader(title = 'Semáforo SERNAC', disable = F),
+    dashboardHeader(title = 'Alertas SERNAC', disable = F),
     dashboardSidebar(
       title = sprintf("Visibile en: %s",
                       sprintf("%s:%s", gsub(".*? ([[:digit:]])", "\\1", ip[grep("IPv4", ip)]), port)),

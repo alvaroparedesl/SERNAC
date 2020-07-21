@@ -137,7 +137,7 @@ Finamente se calcula una nueva variable: `reclamo_acogido`. En ella se recoge si
 setwd("ruta a mi directorio") # reemplazar por la ruta propia
 rm(list=ls())
 library(SERNAC)
-load("./DATA/dbf_v03.RData") # modificar por la ruta propia y el archivo apropiado
+load("./DATA/dbf_v05.RData") # modificar por la ruta propia y el archivo apropiado
 
 #-- Datos de homologacion
 diccionario_columnas <- "homologacion_columnas.xlsx"
@@ -161,17 +161,15 @@ dbfM <- agregar_dbs(base=dbf,
 Una salida del resultado del código anterior, puede ser encontrado en la figura \@ref(fig:homologacionWarning), el cual a pesar de las advertencias que contiene, terminó sin incovenientes, y la base de datos se encuentra lista para ser analizada.
 
 ```{r homologacionWarning, echo=FALSE, fig.cap="Resultado de un proceso de homologación exitoso.", out.width='60%'}
-knitr::include_graphics("images/homologacion_warning.png")
+knitr::include_graphics("images/homologacion-warning.png")
 ```
 
 
 ## Análisis exploratorio {#analisis-exploratorio}
 
-Las variables de interés, a excepción de las fechas, son de tipo categórica (como quedó manifestado en la sección \@ref(seccion-resumen-variables)). Por dicho motivo, realizar un análisis por cada una de ellas no aporta mayor información, sobre todo si se considera que el estado actual de la base de datos, no es el que se utilizará para conducir el estudio. Para que los datos cobren sentido, es necesario agruparlos por alguna unidad de tiempo definida (sección \@ref(seccion-agrupacion)).
+Las variables de interés, a excepción de las fechas, son de tipo categórica (sección \@ref(seccion-resumen-variables)). Por dicho motivo, realizar un análisis por cada una de ellas no aporta mayor información, sobre todo si se considera que el estado actual de la base de datos, no es el que se utilizará para conducir el estudio. Para que los datos cobren sentido, es necesario agruparlos por alguna unidad de tiempo definida (sección \@ref(seccion-agrupacion)). Por dicha razón, a continuación se presentarán algunos resumenes de datos agregados por mes, que son de particular interés para contextualizar los reclamos recibidos por SERNAC.
 
-Por dicha razón, a continuación se presentarán algunos resumenes de datos agregados por mes, que son de particular interés para contextualizar los reclamos recibidos por SERNAC.
-
-En la figura \@ref(fig:total-reclamos-mercado) se puede apreciar como ha evolucionado el número de reclamos a través del tiempo. Se muestran los resultados con el número de reclamos (figura superior) y con el logaritmo en base 10 (figura inferior), para poder discrimnar de mejor manera las diferencias cuando se tienen bajo o alto número de reclamos. Se puede apreciar un alza para el mercado financiero para el año 2012 y una alza generalizada desde principios de 2012 en adelante. También se puede apreciar que el mercado con más reclamos es el financiero, seguido por el de seguros, salud y previsión.
+En la figura \@ref(fig:total-reclamos-mercado) se puede apreciar como ha variado el número de reclamos a través del tiempo. Se muestran los resultados con el número de reclamos (figura superior) y con el logaritmo en base 10 (figura inferior), para poder discrimnar de mejor manera las diferencias cuando se tienen bajo o alto número de reclamos. Se puede apreciar un alza para el mercado financiero para el año 2012 y una alza generalizada desde principios de 2012 en adelante. También se puede apreciar que el mercado con más reclamos es el financiero, seguido por el de seguros, salud y previsión.
 
 ```{r total-reclamos-mercado, echo=FALSE, fig.cap="Evolución del número de reclamos a través del tiempo según mercado. La figura superior muestra el número de reclamos a través del tiempo, y la figura inferior el log10 del número de reclamos.", fig.width=8, fig.height=10}
 # datosPlots, comunas, comunas_poblacion, SII_sizes
@@ -250,7 +248,7 @@ abline(h=at4, lty=2, col=rgb(0, 0, 1, .2))
 mtext("Número de reclamos al año por cada 1.000 habitantes", 4, 2, col=color1)
 ```
 
-Es complejo desglosar otras variables debido a la cantidad de valores que tiene cada una, pero en la tabla \@ref(tab:n-reclamos-anio) se pueden apreciar las industrias (una de las más importantes) que presentan un mayor número de reclamos según el año^[El año 2020 sólo considera hasta mediados de junio.]. La banca, las tarjetas de multitiendas y las corredoras de seguros, son las industrias que se llevan la mayor cantidad de reclamos (aunque también son parte de las industrias más grandes).
+Es complejo desglosar otras variables (como los motivos legales, proveedores y productos), debido a la alta cantidad de valores que tiene cada una, pero en la tabla \@ref(tab:n-reclamos-anio) se pueden apreciar las industrias (una de las más importantes) que presentan un mayor número de reclamos según el año^[El año 2020 sólo considera hasta mediados de junio.]. La banca, las tarjetas de multitiendas y las corredoras de seguros, son las industrias que se llevan la mayor cantidad de reclamos (aunque también son parte de las industrias más grandes).
 
 ```{r, echo=FALSE, results='asis'}
 n_reclamos_anio <- data.table::dcast(datosPlots, proveedor_mercado_nombre + proveedor_mercado_categoria_nombre ~ I(strftime(date, "%Y")),

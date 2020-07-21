@@ -211,11 +211,11 @@ homologar_db <- function(db,
     setdiff(dt3$comunaH, comunas_cod$comunaH)
     dt4 <- merge(dt3, comunas_cod[, c("comunaH", "cut_comuna")], by="comunaH", all.x=T)
     dt4[, c("comunaH", "consumidor_comuna"):=NULL]
-    dt4[, cut_provincia:=substr(cut_comuna, 1, 3)]
-    dt4[, cut_region:=substr(cut_comuna, 1, 2)]
   } else {
     dt4 <- copy(dt3)
   }
+  dt4[, cut_provincia:=substr(cut_comuna, 1, 3)]
+  dt4[, cut_region:=substr(cut_comuna, 1, 2)]
 
   #------------------------------------------------------------------------------------------------
   #------ 5. Motivos legales

@@ -1,0 +1,7 @@
+# Consideraciones finales {-}
+
+La principal dificultad en este trabajo fue pre-procesar la base de datos y estandarizarla de una manera posibilitara realizar las consultas y análisis pertinentes. Todo ello conlleva comprender los tipos de variables (que en un principio eran cerca de 200), sus usos y la importancia de cada una de ellas, para determinar cuáles podrían ser de mayor utilidad para cumplir los objetivos de este trabajo.
+
+Paralelamente, también era de suma importancia comprender el problema y las necesidades de SERNAC, para así determinar qué metodología podría ser la más apropiada. No obstante las dificultades, los resultados que entrega la librería están siendo probados constantemente por los profesionales del SERNAC, y a la fecha, ha funcionado de acuerdo a las espectativas y necesidades de ellos.
+
+Finalmente es importante considerar que la estandarización y homologación de la base de datos es el primer paso y uno de los más importantes, siendo la mejor solución el poder leer directamente de una base de datos relacional. También es necesario incorporar y manejar variables ajenas a los reclamos en sí mismos (por ejemplo, el tamaño de las empresas, el número de clientes aproximados), para enriquecer la base de datos y permitir realizar análisis más elaborados y precisos.

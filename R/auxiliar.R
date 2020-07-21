@@ -22,7 +22,6 @@ calcular_limites <- function(x, cuantiles, IQR, coef) {
 }
 
 
-#' @encoding UTF-8
 #' @title Marca outliers
 #'
 #' @param x vector númerico

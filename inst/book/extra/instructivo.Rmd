@@ -29,7 +29,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Primero descargar R desde <https://cran.r-project.org/bin/windows/base/>; luego instalar RStudio desde <https://download1.rstudio.org/desktop/windows/RStudio-1.3.959.exe>
 
-Una vez comprobado que todo funcione adecuadamanete, descargar los datos desde <http://tecpar.cl/SERNAC/dbf_v03.RData> (peso aprox, 200MB). Descargar también la librería con los códigos <http://tecpar.cl/SERNAC/SERNAC_0.10.0.zip> y el archivo comprimido con datos auxiliares <http://tecpar.cl/SERNAC/aux_data.zip>.
+Una vez comprobado que todo funcione adecuadamanete, descargar los datos desde <http://tecpar.cl/SERNAC/dbf_v05.RData> (peso aprox, 200MB). Descargar también la librería con los códigos <http://tecpar.cl/SERNAC/SERNAC_0.12.0.zip> y el archivo comprimido con datos auxiliares <http://tecpar.cl/SERNAC/aux_data.zip>.
 
 El árbol de mercado también está disponible en: <http://tecpar.cl/SERNAC/arbol_de_mercado.xlsx>
 
@@ -37,7 +37,7 @@ Guardar todo en algún directorio ordenado; al ejecutar RStudio, posicionarse en
 
 ```{r, eval=FALSE}
 setwd("G:/SERNAC") # reemplazar por la ruta propia
-install.packages("SERNAC_0.10.0.zip", repos = NULL, type = "win.binary")
+install.packages("SERNAC_0.12.0.zip", repos = NULL, type = "win.binary")
 install.packages("data.table")
 install.packages("readxl")
 install.packages("shiny")
@@ -237,7 +237,7 @@ A continuación se muestran los scripts completos (lo mismo que se ha ido desglo
 
 ```{r, eval=FALSE}
 setwd("G:/SERNAC") # reemplazar por la ruta propia
-install.packages("SERNAC_0.10.0.zip", repos = NULL, type = "win.binary")
+install.packages("SERNAC_0.12.0.zip", repos = NULL, type = "win.binary")
 install.packages("data.table")
 install.packages("readxl")
 install.packages("shiny")
@@ -348,12 +348,12 @@ dbfM[motivo_legal_descripcion=="REPACTACION", list(N=.N), by=c("proveedor_mercad
 save(outt, file="DATA/202005_outt_test.RData", compress="xz", compression_level=9)
 
 #--- Pendientes
-# TODO: corregir cut_provincia y region para dbf_v03.RData
-# TODO: Agregar posición al gráfico de plotly inicial. 
-# TODO: función que guarde el  
+# TODO: función que guarde la BD en un RData?
 
 #--- Listos
 # TODO: filtrar por id del reclamo, es único (porque las bases de datos son acumulativas, enero, enero y febero, etc) 
+# TODO: corregir cut_provincia y region para dbf_v03.RData  | 20200720
+# TODO: Agregar posición al gráfico de plotly inicial.  | 20200720
 
 
 #--- Otros
@@ -390,6 +390,17 @@ save(datosPlots, comunas, file="SERNAC/inst/book/extra/extraData.RData")
 # población
 
 ```
+
+```{r, eval=FALSE}
+load("./DATA/dbf_v03.RData")
+
+if (F) {
+  dbf[, cut_region:=substr(cut_comuna, 1, 2)]
+  dbf[, cut_provincia:=substr(cut_comuna, 1, 3)]
+  save(dbf, file="DATA/dbf_v05.RData", compress="xz", compression_level=9)
+}
+```
+
 
 
 # Referencias

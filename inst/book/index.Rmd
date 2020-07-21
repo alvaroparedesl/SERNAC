@@ -72,9 +72,9 @@ El propósito de este trabajo, es la creación de una herramienta que permita mo
 
 # Prefacio {-}
 
-::: {.rmdcaution .caution data-latex="{caution}"}
-Este documento aún está en etapa de borrador.
-:::
+<!-- ::: {.rmdcaution .caution data-latex="{caution}"} -->
+<!-- Este documento aún está en etapa de borrador. -->
+<!-- ::: -->
 
 Este trabajo se desarrolló en conjunto con la Subdirección de Consumo financiero del Servicio Nacional del Consumidor (SERNAC), entidad que facilitó la base de datos y prestó constante retroalimentación para calibrar el correcto funcionamiento de esta herramienta.
 

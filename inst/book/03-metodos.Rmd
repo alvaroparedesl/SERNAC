@@ -4,15 +4,15 @@
 
 Una observación atípica (fuera de rango u outlier) es definida como:
 
-> "una observación que se desvía en tal grado de otras observaciones, que despierta sospechas de que fue generada por un mecanismo diferente" [@hawkins_identification_1980].
+> "una observación que se desvía en tal grado de otras observaciones, que despierta sospechas de que fue generada por un mecanismo diferente" [@hawkins_identification_1980; @han_data_2012].
 
 Una de las principales dificultades, es que se debe lidear con una cantidad importante de series de datos en paralelo, cada una con sus propios comportamientos y propiedades.
 
-Existen varias metodologías para encontrar valores atípicos por medio de análisis descriptivos y/o visuales [@tukey_exploratory_1977; @chambers_graphical_1983; @raschka_python_2016], pero en casos como este, donde el conjunto de datos es grande y supeditado a varias variables y subdivisiones, hacer un análisis visual para cada situación no es viable. 
+Existen varias metodologías para encontrar valores atípicos por medio de análisis descriptivos y/o visuales [@tukey_exploratory_1977; @chambers_graphical_1983; @hautamaki_outlier_2004; @mingqiang_graph-based_2012; @raschka_python_2016], pero en casos como este, donde el conjunto de datos es grande y supeditado a varias variables y subdivisiones, hacer un análisis visual para cada situación no es viable. 
 
-También es posible encontrar modelos probabilísticos y estadísticos, junto con modelos lineales, para encontrar outliers. Sin embargo, estos asumen una serie de supuestos (distribución, dependencia/independencia) que las características multi seriales de los datos, es díficil de asumir a priori [@aggarwal_outlier_2017].
+También es posible encontrar modelos probabilísticos y estadísticos, junto con modelos lineales, para encontrar outliers. Sin embargo, estos asumen una serie de supuestos (distribución, dependencia/independencia) que con las características multi seriales de los datos, es difícil de asumir a priori [@petrovskiy_outlier_2003; @hodge_survey_2004; @han_data_2012; @aggarwal_outlier_2017].
 
-Algunas técnicas de clasificación no supervisada se basan en la cercanía/lejanía, y los más populares en distancias (como los clusters) para encontrar valores atípicos. Sin embargo, al ser el espacio dimensional variable, dependiendo de las métricas que se quieran calcular, no es posible determinar a priori parámetros apropiados para configurar los algoritmos de búsqueda (normalmente el espacio ha oscilado entre 5 a 12 dimensiones/variables). Por otro lado, bajo algunas técnicas se dificulta la identificación de las variables que determinan que dicho registro es una observación fuera de rango, sin considerar que muchos de estos algoritmos están diseñados para encontrar ciertas "formas", que son imposibles de identificar previamente [@aggarwal_outlier_2017].
+Algunas técnicas de clasificación no supervisada se basan en la cercanía/lejanía, y los más populares en distancias (como los clusters) para encontrar valores atípicos. Sin embargo, al ser un conjunto de datos heterogéneo y el espacio dimensional variable^[En el presente caso, normalmente se ha oscilado entre 5 a 12 dimensiones/variables.], dependiendo de las métricas que se quieran calcular, no es posible determinar a priori parámetros de inicio apropiados para configurar los algoritmos de búsqueda, siendo que el resultado de los mismos depende en gran medida de estos  [@petrovskiy_outlier_2003; @hodge_survey_2004; @birant_spatio-temporal_2006; @duan_cluster-based_2009; @han_data_2012]. Por otro lado, bajo algunas técnicas se dificulta la identificación de las variables que determinan que dicho registro es una observación fuera de rango, sin considerar que muchos de estos algoritmos están diseñados para encontrar ciertas "formas", que son imposibles de identificar previamente [@aggarwal_outlier_2017].
 
 Por ello se hace necesario desarrollar una metodología que permita automatizar el proceso, pero que a la vez sea robusta, y que permita analizar una gran volumen de series temporales de diferente naturaleza, sobre todo considerando el gran universo de diferentes tipos de mercados, industrias, proveedores y productos. Por último, también es necesario que esta metodología permita identificar con precisión cuál es la causa de que un valor sea catalogado o no como atípico, es decir, no sólo interesa *dónde/cuándo*, si no que también *cuál*.
 
@@ -115,7 +115,7 @@ Por ejemplo, si no consideramos el tiempo de respuesta del proveedor y fijamos c
 Para calcular el ranking, el usuario debe: 
 
 1. Definir el número de integrantes del ranking (`topn`): se entregan `topn` registros para el ranking ascendente (observaciones con métricas que en su mayoría sobrepasan el límite superior) y `topn` registros para el ranking descendente (observaciones con métricas que en su mayoría no sobrepasan el límite inferior). En el caso de que no hayan suficientes observaciones para completar el ranking, se entrega el número máximo alcanzado.
-2. Definir el número mínimo de observaciones a considerar para formar parte del ranking (`nmin`). Para el periodo de tiempo observado, se elimina del ranking aquellas observaciones que no tengan al menos ese número de registros. En este ejemplo, se usan 15.
+2. Definir el número mínimo de observaciones a considerar para formar parte del ranking (`nmin`). Para el periodo de tiempo observado, se elimina del ranking aquellas observaciones que no tengan al menos ese número de registros. En este ejemplo, se usa un mínimo de 15.
 3. Definir el o los períodos de tiempo observados (`t_observado`). 
 
 ```{r eval=FALSE, echo=TRUE}
@@ -125,7 +125,7 @@ outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15")
 Recordar que debido al proceso de agrupación (sección \@ref(seccion-agrupacion)), una unidad de tiempo puntual, define a la agrupación completa. En el ejemplo anterior, `2020-04-15` representa a los reclamos ocurridos durante todo el mes de Abril (desde el `2020-04-01` al `2020-04-30`), aunque la fecha apunte a ese día en particular. Mientras la agrupación sea mensual, siempre se usará el día `15` como comodín para representar al mes completo.
 
 
-### Ranking por Número
+### Ranking por Número {#ranking-por-numero}
 
 Este es el ranking por defecto. La magnitud de la diferencia entre posiciones no es medida (la posición en el ranking del primer lugar por ejemplo, versus otro, puede ser o no ser importante).
 
@@ -138,7 +138,7 @@ Este es el ranking por defecto. La magnitud de la diferencia entre posiciones no
 outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15", tipo='N')
 ```
 
-### Ranking por Puntaje
+### Ranking por Puntaje {#ranking-por-puntaje}
 
 A diferencia del ranking anterior, aquí sí se tiene una idea de la magnitud de la diferencia.
 
@@ -151,7 +151,7 @@ A diferencia del ranking anterior, aquí sí se tiene una idea de la magnitud de
 outt <- seleccionar_ranking(outt, topn=30, nmin=15, t_observado="2020-04-15", tipo='puntaje')
 ```
 
-### Ranking Mixto
+### Ranking Mixto {#ranking-mixto}
 
 Las posiciones en el ranking calculadas en ambos rankings (item 3 en ranking por número y puntaje), son sumadas y luego su posición final es recalculada. En caso de empate, se dirime por el número de observaciones.
 
@@ -182,7 +182,7 @@ Adicionalmente a esos cuartiles, se calcularon el mínimo, máximo y la mediana,
 
 ### Estandarización {#estandarizacion}
 
-Al momento de comparar cualquier combinación de *agrupamiento* con su respectiva *agrupación basal*, dada las diferencias de magnitudes en que se podría incurrir, los datos fueron previamente centrados y escalados (estandarización Z-score), utilizando la media y la desviación estándar (ecuación \@ref(eq:estandarizacion)). Este método es preferible a otros, debido a que preserva de mejor manera la estructura de los datos cuando se está en presencia de valores atípicos (outliers), que es la situación esperable en este caso [@raschka_python_2016]. La estandarización min-max es preferible cuando es necesario contar con valores en un rango definido (0 a 1 por ejemplo).
+Al momento de comparar cualquier combinación de *agrupamiento* con su respectiva *agrupación basal*, dada las diferencias de magnitudes en que se podría incurrir, los datos fueron previamente centrados y escalados (estandarización Z-score), utilizando la media y la desviación estándar (ecuación \@ref(eq:estandarizacion)). Este método es preferible a otros, debido a que preserva de mejor manera la estructura de los datos cuando se está en presencia de valores atípicos (outliers), que es la situación esperable en este caso [@han_data_2012; @raschka_python_2016]. La estandarización min-max es preferible cuando es necesario contar con valores en un rango definido (0 a 1 por ejemplo).
 
 \begin{align} 
 (\#eq:estandarizacion)
