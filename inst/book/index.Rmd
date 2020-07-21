@@ -1,5 +1,5 @@
 --- 
-title: "SERNAC Instructivo Alertas de Reclamos"
+title: "Sistema de detección de valores atípicos en datos del SERNAC"
 author: "Álvaro Paredes Lizama"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 knit: "bookdown::render_book"
@@ -16,8 +16,8 @@ monofontoptions: "Scale=0.7"
 site: bookdown::bookdown_site
 description: "Guía para la detección de anomalías en los reclamos recibidos por SERNAC, por medio de una librería para R."
 url: 'http\://tecpar.cl/R/SERNAC/'
-# github-repo: rstudio/bookdown
-# cover-image: images/cover.jpg
+github-repo: alvaroparedesl/SERNAC/
+cover-image: images/portada.jpg
 always_allow_html: true
 editor_options: 
   chunk_output_type: console
@@ -66,9 +66,15 @@ SII_sizes <- data.table::fread("extra/SII_company_sizes.csv") # al 2016 (año 20
 
 # Resumen {-}
 
+```{r fig.align='center', echo=FALSE, include=identical(knitr:::pandoc_to(), 'html'), fig.link='https://https://github.com/alvaroparedesl/SERNAC'}
+knitr::include_graphics('images/portada.jpg', dpi = NA)
+```
+
 El propósito de este trabajo, es la creación de una herramienta que permita monitorear el flujo de reclamos que recibe SERNAC (*SER*vicio *NA*cional del *C*onsumidor). El principal objetivo, es encontrar los sectores (mercados, industrias, empresas, productos, entre otros) que presentan un aumento o disminución en el número habitual de reclamos, para así poder dedicar de mejor manera los recursos con los que disponen y proteger de mejor manera los intereses de los consumidores. Un problema importante, fue tratar la base de datos que carecía de estandarización en el nombre y tipo de columnas, aunque no presentaba mayores datos faltantes en las variables de interés. La detección de un número atípico de reclamos, se realizó principalmente por medio del análisis de percentiles en base a diferentes métricas, especialmente diferenciaciones a distintos períodos de tiempo. Debido a la naturaleza de los datos, esta metodología simple pero robusta, presenta varias ventajas con respecto a otras opciones para la detección de outliers. El resultado es por un lado un visor interactivo que permite explorar los resultados y por otro lado, una serie de tablas resumen con las alertas encontradas. Al no contar con una variable que indique si una determinada observación es o no realmente atípica, la evaluación de la funcionalidad de esta herramienta se realizó por medio del juicio experto de los profesionales de SERNAC.
 
 ***Palabras claves:*** reclamos, alerta, valores atípicos, anomalías, serie temporal.
+
+![Creative Commons License](images/by-nc-sa.png)
 
 # Prefacio {-}
 
@@ -81,6 +87,7 @@ Este trabajo se desarrolló en conjunto con la Subdirección de Consumo financie
 La base de datos proporcionada es de caracter confidencial, debido a la información sensible que contiene, en una parte para proteger los datos de los consumidores y porque SERNAC en muchas instancias oficia acciones judiciales que podrían verse entorpecidas. No obstante, la información anonimizada puede ser solicitada por transparencia. Por dicha razón, los datos de base no son disponibilizados directamente.
 
 *Este trabajo se enmarca como parte del proyecto de título para optar al grado de Magíster en Estadística, de la Pontificia Universidad Católica de Chile.*
+
 
 ## Estructura {-}
 
@@ -106,7 +113,5 @@ Se eligió este lenguaje de desarrollo por sobre otros, debido a que presenta un
 Esta librería se presenta como una herramienta de apoyo en la gestión de los reclamos, y no pretende bajo ninguna medida, reemplazar el factor humano y mucho menos el juicio experto de las personas que trabajan en dicha materias. Es justamente todo lo contrario, para que funcione correctamente, es necesaria la retroalimentación constante de parte de los profesionales del servicio.
 
 El código fuente de la librería, así como de este manuscrito, está disponible en: <https://github.com/alvaroparedesl/SERNAC>.
-
-<!-- ![Creative Commons License](images/by-nc-sa.png) -->
 
 
