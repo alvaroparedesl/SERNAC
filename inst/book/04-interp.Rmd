@@ -2,7 +2,7 @@
 
 Una vez que se han definido las características y el tipo de ranking que se calcula (ver \@ref(seccion-ranking)), se puede invocar un visor dinámico que permite explorar los resultados obtenidos. Esta herramienta es sólo para visualizar y no permite ningún tipo de manipulación o exportación de la información (para exportar los datos, ver la sección \@ref(seccion-exportar)).
 
-Para invocar el visor, se debe hacer de la siguiente forma (es necesario tener las librerías @R-shiny, @R-shinydashboard, @R-plotly y @R-DT):
+Antes de invocar el visor, es necesario cerciorarse de que se cuenta con las librerías `shiny` [@R-shiny], `shinydashboard` [@R-shinydashboard], `plotly` [@R-plotly] y `DT` [@R-DT]. Luego, se puede correr el siguiente código para desplegar el visor interactivo:
 
 ```{r, eval=FALSE}
 outt <- extraer_series(outt)
