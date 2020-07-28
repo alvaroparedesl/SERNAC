@@ -271,6 +271,7 @@ dbfM <- agregar_dbs(base=dbf,
                     codigos_comunales=codigos_comunales,
                     arbol_motivo_legal=arbol_motivo_legal,
                     datos_sii=datos_sii,
+                    # mercados_de_interes=c("FINANCIEROS", "SEGUROS", "SALUD", "PREVISION", "TELECOMUNICACIONES"),
                     db1, db2)
 ```
 
@@ -401,6 +402,173 @@ if (F) {
 }
 ```
 
+## Segunda carga [todos]
+
+```{r}
+rm(list=ls())
+library(readxl)
+library(data.table)
+setwd("G:/SERNAC")
+
+sheets <- list(`./DATA/2010/BD_MEDIACIONES_AL_31122010-extraida-09-2013-liviana.xlsx` = c("BASE RECLAMOS_2010", 2010), 
+    `./DATA/2011/BD_MEDIACIONES_AL_31122011-extraida-09-2013-CON DESCRIPCIÓN.xlsx` = c("BASE RECLAMOS_2011", 2011), 
+    `./DATA/2012/MEDIACIONES_AL_31122012-extraida-09-2013.xlsx` = c("reclamos_2012", 2012), 
+    `./DATA/2013/BD_MEDIACIONES_AL_31122013-extraida-24-03-2014.xlsx` = c("Base", 2013), 
+    `./DATA/2014/Base reclamos WD MAC 2014_ext 05-03-2015.xlsx` = c("Reclamos", 2014), 
+    `./DATA/2015/BD_Reclamos_al_31122015_ext_23022016_liviana.xlsx` = c("Base_Oficial", 2015), 
+    `./DATA/2016/BD_Reclamos_31122016_ext_27062017_amplia.xlsx` = c("base oficial", 2016), 
+    `./DATA/2017/BD_Reclamos_31122017_ext_14032018_Amplia (2).xlsx` = c("base oficial", 2017), 
+    `./DATA/2018/BD_Reclamos_31122018_ext_12032019_Amplia.xlsx` = c("base Oficial", 2018), 
+    `./DATA/2019/B_Reclamos_al_31122019_extraida_24022020_liviana.xlsx` = c("listado_casos ", 2019))
+polar <- list(`./DATA/2013/BD_MEDIACIONES_AL_31122013-extraida-24-03-2014.xlsx` = c("La Polar", 2013), 
+              `./DATA/2014/Base reclamos WD MAC 2014_ext 05-03-2015.xlsx` = c("Solicitudes La Polar", 2014))
+
+files <- lapply(names(sheets), function(x) {
+  y <- data.table(read_excel(x, sheets[[x]][1]))
+  y$periodo <- sheets[[x]][2]
+  y
+  })
+
+lpolar <- lapply(names(polar), function(x) {
+  y <- data.table(read_excel(x, polar[[x]][1]))
+  y$periodo <- polar[[x]][2]
+  y
+  })
+
+filesB <- copy(files)
+files <- c(files, lpolar)
+
+homologacion <- data.table(read_excel("./DATA/homologacion_columnas.xlsx"))
+borrar <- c("dia", "mes", "año")
+files2 <- copy(files)
+files3 <- copy(files)
+files2 <- lapply(files2, function(x) {
+  oldnames <- names(x)
+  newnames <- gsub(" ", "_", tolower(oldnames))
+  setnames(x, newnames)
+  x <- x[, (borrar) := NULL]
+  idx <-  homologacion$original %in% names(x)
+  setnames(x, homologacion$original[idx], homologacion$nuevo[idx])
+  x
+})
+
+# files2[[1]][, reclamo_fecha_hecho := as.Date(reclamo_fecha_hecho)]
+files2[[5]][, reclamo_fecha_hecho := as.POSIXct(as.Date(as.numeric(reclamo_fecha_hecho), origin="1900-01-01"))]
+files2[[6]][, reclamo_fecha_hecho := as.POSIXct(as.Date(as.numeric(reclamo_fecha_hecho), origin="1900-01-01"))]
+files2[[7]][, reclamo_fecha_hecho := as.POSIXct(as.Date(as.numeric(reclamo_fecha_hecho), origin="1900-01-01"))]
+files2[[8]][, reclamo_fecha_hecho := as.POSIXct(as.Date(as.numeric(reclamo_fecha_hecho), origin="1900-01-01"))]
+files2[[8]][, gestion_respuesta_consumidor := as.POSIXct(as.Date(as.numeric(gestion_respuesta_consumidor), origin="1900-01-01"))]
+files2[[8]][, reclamo_fecha_respuesta_provee2 := as.POSIXct(as.Date(as.numeric(reclamo_fecha_respuesta_provee2), origin="1900-01-01"))]
+files2[[9]][, reclamo_fecha_hecho := as.POSIXct(as.Date(as.numeric(reclamo_fecha_hecho), origin="1900-01-01"))]
+files2[[9]][, consumidor_nacimiento := as.POSIXct(as.Date(as.numeric(consumidor_nacimiento), origin="1900-01-01"))]
+files2[[10]][, consumidor_nacimiento := as.POSIXct(as.Date(as.numeric(consumidor_nacimiento), origin="1900-01-01"))]
+files2[[12]][, reclamo_fecha_traslado := as.POSIXct(as.Date(as.numeric(reclamo_fecha_traslado), origin="1900-01-01"))]
+files2[[12]][, reclamo_fecha_insistencia := as.POSIXct(as.Date(as.numeric(reclamo_fecha_insistencia), origin="1900-01-01"))]
+
+
+db1 <- rbindlist(files2, use.names=T, fill=T)
+
+
+db1[is.na(ingreso_fecha), ingreso_fecha:=caso_creacion_fecha]
+any(is.na(db1$ingreso_fecha))
+db1[, caso_creacion_fecha:=NULL]
+setnames(db1, "ingreso_fecha", "caso_creacion_fecha")
+
+#-- re_envio_insistencia_proveedor: por estar vacía
+#-- caso_tipo: son todos MEDIACION o blancos
+db1[, c("ingreso_dia", "ingreso_mes", "ingreso_year", "re_envio_insistencia_proveedor", "caso_tipo"):=NULL]
+db2 <- copy(db1)
+db2[, periodo:=as.numeric(periodo)]
+db2[, id:=1:.N]
+
+#-- ruts sin digito verificador
+db2[, proveedor_rut:=as.numeric(gsub('-[0-9kK]$', '', proveedor_rut, perl=T))]
+
+
+mycols <- unique(homologacion[!is.na(categoria2), c("nuevo", "categoria", "categoria2")])
+setorder(mycols, categoria2, nuevo)
+group_order <- c("id", "canal", "estado", "fecha", "consumidor", "mercado", "mercado2", "proveedor", "cierre", "login", "reclamo")
+myorder <- c("id", "periodo", "colectivo", unlist(lapply(group_order, function(x) {mycols[categoria2==x, "nuevo"]})))
+dbf <- db2[, myorder, with=F]
+
+dbf[, reclamo_fecha_hecho:=NULL]
+
+
+diccionario_columnas <- "DATA/homologacion_columnas.xlsx"
+codigos_comunales <- "DATA/codigos_comunales.xlsx"
+arbol_motivo_legal <- "DATA/arbol_de_mercado.xlsx"
+datos_sii <- "DATA/SII/compilado_2018.csv"
+dbf <- homologar_db(dbf,
+                    diccionario_columnas=diccionario_columnas,
+                    codigos_comunales=codigos_comunales,
+                    arbol_motivo_legal=NULL,
+                    datos_sii=NULL,
+                    verbose=TRUE,
+                    full_output=TRUE,
+                    mercados_de_interes=NULL,
+                    drop=.8)$tabla
+
+save(dbf, file="DATA/dbf_v05.RData", compress="xz", compression_level=9)
+```
+
+
+## semáfoto 2
+
+```{r}
+rm(list=ls())
+library(SERNAC)
+load("./DATA/dbf_v05.RData") # modificar por la ruta propia
+
+#-- Datos de homologacion
+diccionario_columnas <- "DATA/homologacion_columnas.xlsx"
+codigos_comunales <- "DATA/codigos_comunales.xlsx"
+arbol_motivo_legal <- "DATA/arbol_de_mercado.xlsx"
+datos_sii <- "DATA/SII/compilado_2018.csv"
+
+#-- Datos nuevos
+db2 <- "DATA/2020/B_Reclamos_al_15062020_extraida_16062020_amplia.csv"
+
+dbfM <- agregar_dbs(base=dbf, 
+                    diccionario_columnas=diccionario_columnas,
+                    codigos_comunales=codigos_comunales,
+                    arbol_motivo_legal=arbol_motivo_legal,
+                    datos_sii=datos_sii,
+                    mercados_de_interes=c("FINANCIEROS", "TELECOMUNICACIONES"),
+                    db2)
+
+Clases <- c(mercado="proveedor_mercado_nombre",
+            industria="proveedor_mercado_categoria_nombre", # proveedor_mercado_nombre va antes
+            proveedor="proveedor_rut",
+            producto="mercado_tipo_producto_nombre")
+
+?computar_reclamos  # despliega la ayuda de R.
+outt <- computar_reclamos(dbfM[estado_caso_nombre=="CERRADO"],
+                          byCategoria=c("cierre_corto", 
+                                        "motivo_legal_descripcion"),
+                                        # "proveedor_mercado_nombre", 
+                                        # "proveedor_mercado_categoria_nombre", 
+                                        # "proveedor_rut"),
+                                        # "cut_region"),
+                          byClase=Clases,
+                          lags=c(1:6, 12, 24), 
+                          cuantiles=c(.25, .75), # c(0, .25, .5, .75, 1), 
+                          IQR=c(.25, .75),
+                          coef=1.5,
+                          n_min=50,
+                          usar_tiempo=F,
+                          rango_fechas = c("2016-01-01", NA) ) # caso_creacion_fecha
+outt
+
+topn <- 30
+nmin <- 15
+t_observado <- c("2020-02-15", "2020-03-15", "2020-04-15", "2020-05-15")
+
+outt <- seleccionar_ranking(outt, topn=topn, nmin=nmin, t_observado=t_observado, tipo='N')
+outt <- extraer_series(outt)
+outt <- reportar(outt)
+
+shinyPlot(outt)
+```
 
 
 # Referencias

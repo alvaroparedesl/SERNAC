@@ -12,24 +12,37 @@ agregar_dbs <- function(base, ...) {
   input <- list(...)
   input_names <- names(input)
   data <- input[input_names == ""]
-  params <- input[input_names != ""]
+  params1 <- input[input_names %in% names(formals(homologar_db))]
+  params1_not1 <- c("diccionario_columnas", "codigos_comunales", "arbol_motivo_legal",
+                    "datos_sii")
+  params1_not2 <- c(params1_not1, "verbose", "full_output")
 
   iter <- 1
   datal <- list()
   arboles <- list()
   for (i in data) {
     if (iter == 1) {
-      temp <- do.call("homologar_db", c(list(db=i), params))
+      temp <- do.call("homologar_db", c(list(db=i), params1))
     } else {
-      temp <- homologar_db(i, temp$diccionario_columnas, temp$codigos_comunales,
-                           temp$arbol_motivo_legal, temp$datos_sii)
+      temp <- do.call("homologar_db", c(list(db=i,
+                                             diccionario_columnas=temp$diccionario_columnas,
+                                             codigos_comunales=temp$codigos_comunales,
+                                             arbol_motivo_legal=temp$arbol_motivo_legal,
+                                             datos_sii=temp$datos_sii),
+                                        params1[!names(params1) %in% params1_not1]))
     }
     datal[[i]] <- temp$tabla
     arboles[[i]] <- temp$arbol_a_corregir
     iter <- iter + 1
   }
-  dbff_ <- homologar_db(base, 'skip', 'skip', temp$arbol_motivo_legal, temp$datos_sii,
-                       verbose=TRUE, full_output=FALSE)
+  dbff_ <- do.call("homologar_db", c(list(db=base,
+                                          diccionario_columnas = 'skip',
+                                          codigos_comunales = 'skip',
+                                          arbol_motivo_legal=temp$arbol_motivo_legal,
+                                          datos_sii=temp$datos_sii,
+                                          verbose=TRUE,
+                                          full_output=FALSE),
+                                     params1[!names(params1) %in% params1_not2]))
   dbf_ <- dbff_$tabla
 
   arboles_corregir <- rbindlist(c(list(dbff_$arbol_a_corregir), arboles))
@@ -159,7 +172,9 @@ homologar_db <- function(db,
 
   #------------------------------------------------------------------------------------------------
   #------ 2. Seleccionar mercados que me interesan
-  dt2 <- dt2[proveedor_mercado_nombre %in% mercados_de_interes]
+  if (!is.null(mercados_de_interes)) {
+    dt2 <- dt2[proveedor_mercado_nombre %in% mercados_de_interes]
+  }
 
   #------------------------------------------------------------------------------------------------
   #------ 3. Asignar rut a proveedores faltantes (por mayoría) y nombres de razón social por rut de mayoría
@@ -220,7 +235,9 @@ homologar_db <- function(db,
   #------------------------------------------------------------------------------------------------
   #------ 5. Motivos legales
   if (is.null(arbol_motivo_legal)){
-    #--- cargar de base de datos
+    dt5 <- dt4
+    arbol_corregir <- NULL
+    arbol <- NULL
   } else {
     if (verbose) cat("Leyendo motivos legales\n")
     if (is.character(arbol_motivo_legal)){
@@ -233,26 +250,27 @@ homologar_db <- function(db,
     } else {
       arbol <- copy(data.table(arbol_motivo_legal))
     }
+    dt5 <- merge(dt4, arbol,
+                 by=c("proveedor_mercado_nombre", "motivo_legal_descripcion", "categoria_motivo_legal"),
+                 all.x=T, sort=F)
+    arbol_corregir <- dt5[is.na(`PROPUESTA DE FUSION MOTIVO LEGAL`) & is.na(`PROPUESTA DE FUSION CATEGORIA LEGAL`)]
+    if (nrow(arbol_corregir) > 0) {
+      arbol_corregir <- arbol_corregir[, list(Numero=.N, Inicio=min(caso_creacion_fecha), Termino=max(caso_creacion_fecha)),
+                                       by=c("proveedor_mercado_nombre", "motivo_legal_descripcion", "categoria_motivo_legal")]
+    } else {
+      arbol_corregir <- NULL
+    }
+    dt5[, c("motivo_legal_descripcion", "categoria_motivo_legal"):=NULL]
+    setnames(dt5, c("PROPUESTA DE FUSION MOTIVO LEGAL", "PROPUESTA DE FUSION CATEGORIA LEGAL"), c("motivo_legal_descripcion", "categoria_motivo_legal"))
   }
-
-  dt5 <- merge(dt4, arbol,
-               by=c("proveedor_mercado_nombre", "motivo_legal_descripcion", "categoria_motivo_legal"),
-               all.x=T, sort=F)
-  arbol_corregir <- dt5[is.na(`PROPUESTA DE FUSION MOTIVO LEGAL`) & is.na(`PROPUESTA DE FUSION CATEGORIA LEGAL`)]
-  if (nrow(arbol_corregir) > 0) {
-    arbol_corregir <- arbol_corregir[, list(Numero=.N, Inicio=min(caso_creacion_fecha), Termino=max(caso_creacion_fecha)),
-                                     by=c("proveedor_mercado_nombre", "motivo_legal_descripcion", "categoria_motivo_legal")]
-  } else {
-    arbol_corregir <- NULL
-  }
-  dt5[, c("motivo_legal_descripcion", "categoria_motivo_legal"):=NULL]
-  setnames(dt5, c("PROPUESTA DE FUSION MOTIVO LEGAL", "PROPUESTA DE FUSION CATEGORIA LEGAL"), c("motivo_legal_descripcion", "categoria_motivo_legal"))
 
   #------------------------------------------------------------------------------------------------
   # 6. SII data
 
   if (is.null(datos_sii)) {
-    #--- cargar de base de datos
+    #--- cargar de base de datos? No, no hacer nada
+    dt6 <- dt5
+    siiData <- NULL
   } else {
     if (verbose) cat("Leyendo datos del SII\n")
     if (is.character(datos_sii)){
@@ -260,12 +278,11 @@ homologar_db <- function(db,
     } else {
       siiData <- copy(data.table(datos_sii))
     }
+    ruts_sii <- siiData[siiData[, .I[which.max(periodo)], by=c("rut")]$V1, c("rut", "periodo", "tramo_ventas")]
+    # ruts_sii[, list(N=.N), by=tramo_ventas][order(tramo_ventas)]
+    setnames(ruts_sii, c("rut"), c("proveedor_rut"))
+    dt6 <- merge(dt5, ruts_sii[, c("proveedor_rut", "tramo_ventas")], all.x=TRUE, sort=FALSE)
   }
-
-  ruts_sii <- siiData[siiData[, .I[which.max(periodo)], by=c("rut")]$V1, c("rut", "periodo", "tramo_ventas")]
-  # ruts_sii[, list(N=.N), by=tramo_ventas][order(tramo_ventas)]
-  setnames(ruts_sii, c("rut"), c("proveedor_rut"))
-  dt6 <- merge(dt5, ruts_sii[, c("proveedor_rut", "tramo_ventas")], all.x=TRUE, sort=FALSE)
 
   #------------------------------------------------------------------------------------------------
   # 7. Calcular columnas
