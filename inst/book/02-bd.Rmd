@@ -35,7 +35,7 @@ knitr::kable(head(columnas[Uso==1, c("original", "nuevo", "Uso")], 10), booktabs
 
 Una nueva tabla es retornada con los nombres de las columnas modificadas de acuerdo al archivo `homologacion_columnas`.
 
-### Agregar una columna como variable a utilizar
+### Agregar una columna como variable a utilizar {#agregar-columna-variable-utilizar}
 
 Basta con añadir una fila extra al archivo, indicando el nombre original, su nuevo nombre (puede ser el mismo) y el valor $1$ en al columna, bajo las columnas `original`, `nuevo` y `Uso` respectivamente. Otra información anexa de interés (como por qué se agrega, cuándo, etc) puede ser añadida en otras columnas sin problema, puesto que serán ignoradas al momento de hacer la conversión.
 
@@ -137,7 +137,7 @@ Finamente se calcula una nueva variable: `reclamo_acogido`. En ella se recoge si
 setwd("ruta a mi directorio") # reemplazar por la ruta propia
 rm(list=ls())
 library(SERNAC)
-load("./DATA/dbf_v05.RData") # modificar por la ruta propia y el archivo apropiado
+load("./DATA/dbf_v03.RData") # modificar por la ruta propia y el archivo apropiado
 
 #-- Datos de homologacion
 diccionario_columnas <- "homologacion_columnas.xlsx"

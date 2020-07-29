@@ -6,13 +6,17 @@ editor_options:
 # Scripts {#capitulo-script}
 <!-- # Scripts {.tabset .tabset-fade .tabset-pills} -->
 
-A continuación se muestran los scripts completos (lo mismo que se ha ido desglosando en las secciones anteriores, pero todo en conjunto).
+A continuación se muestran los scripts completos (lo mismo que se ha ido desglosando en las secciones anteriores, pero todo en conjunto). En primera instancia, para la versión de desarrollo que se ha usado de manera regular y posteriormente, con algunas modificaciones para incluir otros mercados que podrían ser de interés.
+
+En cada uno, es necesario ir modificando y adaptando las rutas/direcciones a los archivos, según donde estén almacenados en el computador de cada usuario.
 
 ## Cargas preliminares
 
+Este paso es común e independiente a la versión de la base de datos que se tenga
+
 ```{r, eval=FALSE}
 setwd("G:/SERNAC") # reemplazar por la ruta propia
-install.packages("SERNAC_0.12.0.zip", repos = NULL, type = "win.binary")
+install.packages("SERNAC_0.13.0.zip", repos = NULL, type = "win.binary")
 install.packages("data.table")
 install.packages("readxl")
 install.packages("shiny")
@@ -21,12 +25,22 @@ install.packages("DT")
 install.packages("plotly")
 ```
 
-## Homologación de la base de datos {#homologacion}
+## Versión 0.3 de la base de datos {#seccion-script-bd-03}
+
+Estos ejemplos son utilizando la versión 0.3 de la base de datos (archivo `dbf_v03.RData`). Este archivo contiene los reclamos desde el 2010 a principios del 2019, para los mercados financieros, previsión, salud y seguros solamente. Las columnas contempladas están indicadas en la sección \@ref(seccion-resumen-variables).
+
+El peso de este archivo es de 199MB y contiene poco más de 700000 registros.
+
+::: {.rmdimportant .important data-latex="{important}"}
+Si se desea agregar variables nuevas utilizando el archivo `columnas_homologacion.xlsx` (ver \@ref(agregar-columna-variable-utilizar)) que no están contenidas aquí, se deberá generar el archivo nuevamente (esto último no es parte de este instructivo).
+:::
+
+### Homologación de la base de datos {#seccion-script-homologacion-bd-03}
 
 ```{r, eval=FALSE}
 rm(list=ls())
 library(SERNAC)
-load("./DATA/dbf_v05.RData") # modificar por la ruta propia y el archivo apropiado
+load("./DATA/dbf_v03.RData") # modificar por la ruta propia y el archivo apropiado
 
 #-- Datos de homologacion
 diccionario_columnas <- "DATA/homologacion_columnas.xlsx"
@@ -47,7 +61,7 @@ dbfM <- agregar_dbs(base=dbf,
 ```
 
 
-## Ejecución alertas {#ejecucion-alertas}
+### Ejecución alertas {#seccion-script-alertas-bd-03}
 
 ```{r, eval=FALSE}
 Clases <- c(mercado="proveedor_mercado_nombre",
@@ -55,7 +69,6 @@ Clases <- c(mercado="proveedor_mercado_nombre",
             proveedor="proveedor_rut",
             producto="mercado_tipo_producto_nombre")
 
-?computar_reclamos  # despliega la ayuda de R.
 outt <- computar_reclamos(dbfM[estado_caso_nombre=="CERRADO"],
                           byCategoria=c("cierre_corto", 
                                         "motivo_legal_descripcion"),
@@ -79,7 +92,84 @@ outt <- reportar(outt)
 shinyPlot(outt)
 ```
 
+
+
+## Versión 0.5 de la base de datos {#seccion-script-bd-05}
+
+Estos ejemplos son utilizando la versión 0.5^[la versión 0.4 no ha sido distribuida debido a que contiene errores en su generación y por cuestiones de trazabilidad, se decidió continuar con la numeración.] de la base de datos (archivo `dbf_v05.RData`). A diferencia de la versión anterior, este archivo contiene los reclamos desde el 2010 al 31 de diciembre de 2019, para todos los mercados disponibles. Las columnas ontempladas están indicadas en la sección \@ref(seccion-resumen-variables) y son las mismas que la versión anterior.
+
+Como en esta versión están incluídos todos los mercados, el peso es un poco más del doble (444 MB) y contiene poco más de 3 millones de registros.
+
+::: {.rmdimportant .important data-latex="{important}"}
+Si se desea agregar variables nuevas utilizando el archivo `columnas_homologacion.xlsx` (ver sección \@ref(agregar-columna-variable-utilizar)) que no están contenidas aquí, se deberá generar el archivo nuevamente (esto último no es parte de este instructivo).
+:::
+
+### Homologación de la base de datos {#seccion-script-homologacion-bd-05}
+
+En este caso, a diferencia del anterior, seleccionamos los mercados financieros y de telecomunicaciones (podría ser sólo uno de ellos o cualquier otra combinación). El problema que se presenta aquí, es que el árbol de motivos legales no contempla el mercado de telecomunicaciones, por lo que motivos legales aparecerán con `NA` (lo mismo para cualquier otro mercado que no esté entre los cuatro contemplados inicialmente).
+
+Al correr el siguiente código, se generará de manera automática el archivo `arbol_mercado_a_corregir.csv`. Al revisar este archivo se pueden agregar las propuestas de fusión correspondientes para cada motivo legal, al archivo `arbol_de_mercado.xlsx` (ver sección \@ref(seccion-motivos-legales) para más detalles). Una opción rápida para lograr algunos resultados, sin homologar el árbol para el mercado que se está agregando (telecomunicaciones en este caso), es replicar la misma información en las columnas de propuesta, es decir, mantener la misma información.
+
+```{r, eval=FALSE}
+rm(list=ls())
+library(SERNAC)
+load("./DATA/dbf_v05.RData") # modificar por la ruta propia
+
+#-- Datos de homologacion
+diccionario_columnas <- "DATA/homologacion_columnas.xlsx"
+codigos_comunales <- "DATA/codigos_comunales.xlsx"
+arbol_motivo_legal <- "DATA/arbol_de_mercado.xlsx"
+datos_sii <- "DATA/SII/compilado_2018.csv"
+
+#-- Datos nuevos (del 2020)
+db2 <- "DATA/2020/B_Reclamos_al_15062020_extraida_16062020_amplia.csv"
+
+dbfM <- agregar_dbs(base=dbf, 
+                    diccionario_columnas=diccionario_columnas,
+                    codigos_comunales=codigos_comunales,
+                    arbol_motivo_legal=arbol_motivo_legal,
+                    datos_sii=datos_sii,
+                    mercados_de_interes=c("FINANCIEROS", "TELECOMUNICACIONES"),
+                    db2)
+```
+
+
+### Ejecución alertas {#seccion-script-alertas-bd-05}
+
+```{r, eval=FALSE}
+Clases <- c(mercado="proveedor_mercado_nombre",
+            industria="proveedor_mercado_categoria_nombre",
+            proveedor="proveedor_rut",
+            producto="mercado_tipo_producto_nombre")
+
+outt <- computar_reclamos(dbfM[estado_caso_nombre=="CERRADO"],
+                          byCategoria=c("cierre_corto", 
+                                        "motivo_legal_descripcion"),
+                          byClase=Clases,
+                          lags=c(1:6, 12, 24), 
+                          cuantiles=c(.25, .75),
+                          IQR=c(.25, .75),
+                          coef=1.5,
+                          n_min=50,
+                          usar_tiempo=F,
+                          rango_fechas = c("2016-01-01", NA) )
+
+topn <- 30
+nmin <- 15
+t_observado <- c("2020-02-15", "2020-03-15", "2020-04-15", "2020-05-15")
+
+outt <- seleccionar_ranking(outt, topn=topn, nmin=nmin, t_observado=t_observado, tipo='N')
+outt <- extraer_series(outt)
+outt <- reportar(outt)
+
+shinyPlot(outt)
+```
+
+
+
 ## Exportar tablas
+
+Independiemente de la versión, la exportación de tablas es la misma y se puede hacer utilizando:
 
 ```{r eval=FALSE}
 exportar(outt, que=c('ranking'), verbose=T)  # formato inglés
