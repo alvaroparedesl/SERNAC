@@ -189,8 +189,8 @@ shinyPlot <- function(obj) {
     skin = "green",
     dashboardHeader(title = 'Alertas SERNAC', disable = F),
     dashboardSidebar(
-      title = sprintf("Visibile en: %s",
-                      sprintf("%s:%s", gsub(".*? ([[:digit:]])", "\\1", ip[grep("IPv4", ip)]), port)),
+      title = sprintf("Visible en: %s", sprintf("%s:%s", gsub(".*? ([[:digit:]])", "\\1", ip[grep("IPv4", ip)][[1]]), port)),
+
       selectInput(
         'dates', '1. Fechas observadas', choices = obj$atributos$ranking$dates,
         selectize = FALSE, selected = obj$atributos$ranking$dates[1]

@@ -37,7 +37,7 @@ Otra dificultad, es que si bien SERNAC continuamente realiza un monitoreo a los 
 Primero descargar R desde <https://cran.r-project.org/bin/windows/base/>; luego instalar RStudio desde <https://rstudio.com/products/rstudio/download/#download>
 
 <!-- desde <http://tecpar.cl/SERNAC/dbf_v05.RData> (peso aprox, 200MB) -->
-Una vez comprobado que todo funcione adecuadamanete, descargar los datos de reclamos. Descargar también la librería con los códigos <http://tecpar.cl/SERNAC/SERNAC_0.13.0.zip> y el archivo comprimido con datos auxiliares <http://tecpar.cl/SERNAC/aux_data.zip>.
+Una vez comprobado que todo funcione adecuadamanete, descargar los datos de reclamos. Descargar también la librería con los códigos <http://tecpar.cl/SERNAC/SERNAC_0.13.1.zip> y el archivo comprimido con datos auxiliares <http://tecpar.cl/SERNAC/aux_data.zip>.
 
 El árbol de mercado actualizado está disponible en: <http://tecpar.cl/SERNAC/arbol_de_mercado.xlsx>. El archivo con la homologación de las columnas, está disponible en: <http://tecpar.cl/SERNAC/homologacion_columnas.xlsx>
 
@@ -45,7 +45,7 @@ Guardar todo en algún directorio, de manera ordenada; al ejecutar RStudio, posi
 
 ```{r, eval=FALSE}
 setwd("ruta a mi directorio") # reemplazar por la ruta propia
-install.packages("SERNAC_0.13.0.zip", repos = NULL, type = "win.binary")
+install.packages("SERNAC_0.13.1.zip", repos = NULL, type = "win.binary")
 install.packages("data.table")
 install.packages("readxl")
 install.packages("shiny")
