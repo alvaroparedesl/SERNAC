@@ -1,7 +1,10 @@
 #' @encoding UTF-8
 #' @title Genera un dashboard con shiny
 #'
+#' @description Levanta un dashboard de shiny, en un servidor web local que permite visualizar las alertas de manera interactiva.
+#'
 #' @param obj Objeto de la clase reclamos.
+#' @param port puerto en el que se ejecuta el servidor web de la aplicación
 #'
 #' @importFrom plotly renderPlotly plotlyOutput plot_ly layout config
 #' @importFrom data.table setorder
@@ -10,11 +13,10 @@
 #' @import shinydashboard
 #' @export
 #'
-shinyPlot <- function(obj) {
+shinyPlot <- function(obj, port=6742) {
   if (!"reclamos" %in% class(obj)) stop("Objeto db debe ser de la clase reclamos")
   if (!obj$estado$reporte) stop("Primero debe extraer la serie con reportar")
   ip <- system("ipconfig", intern=TRUE)
-  port <- 6742
 
   #--------------------------- MAIN FUNCTIONS -----------------------------------------------------------------#
   plotSeries1 <- function(ind, data, upDir, figid, title="Ranking ascendente de alertas (top %s)", xlab="Tiempo", ylab="Número de reclamos") {

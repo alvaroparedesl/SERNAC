@@ -1,8 +1,8 @@
 Package: SERNAC
 Type: Package
 Title: Funciones utilitarias para datos de reclamos del SERNAC
-Version: 0.13.1
-Date: 2020-08-26
+Version: 0.13.2
+Date: 2020-08-27
 Authors@R: person("Álvaro", "Paredes Lizama", email = "aaparede@uc.cl", role = c("aut", "cre"))
 Description: Conjunto de funciones y utilidades para analizar datos de reclamos de SERNAC. 
   Permite analizar los reclamos de manera agregada para determinar sectores con un número inusual de reclamos.
@@ -24,4 +24,3 @@ Imports:
   readxl,
   shiny,
   shinydashboard
-  

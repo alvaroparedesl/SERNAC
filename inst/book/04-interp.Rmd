@@ -11,6 +11,13 @@ outt <- reportar(outt)
 shinyPlot(outt)
 ```
 
+En el caso de que se necesite utilizar otro puerto para desplegar el visor (ya sea porque ya hay una de estas intancias corriendo u otro proceso), se puede definir utilizando la opción `port`.
+
+```{r, eval=FALSE}
+shinyPlot(outt, port=6742)
+```
+
+
 A continuación se presenta una descripción de las funcionalidades del visor y de como es posible extraer la información generada por la librería.
 
 

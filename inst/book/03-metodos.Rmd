@@ -104,7 +104,7 @@ Por ejemplo, si no consideramos el tiempo de respuesta del proveedor y fijamos c
 
 ### Métricas
 
-1. Los datos son estandarizados (para poder comparar agrupaciones, con sus respectivas agrupaciones basales; ver ver \@ref(estandarizacion) para más detalles).
+1. Los datos son estandarizados (para poder comparar agrupaciones, con sus respectivas agrupaciones basales; ver \@ref(estandarizacion) para más detalles).
 1. Para cada una de las variables se buscan los percentiles definidos, en este caso $Q.(25)$ y $Q.(75)$.
 1. Se calculan los límites superior e inferior con respecto al rango intercuantil (ver \@ref(rango-intercuantil) para más detalles).
 1. Se buscan y marcan las observaciones que sobrepasan estos límites superior (ascendente) e inferior (descendente).

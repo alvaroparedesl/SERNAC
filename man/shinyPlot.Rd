@@ -5,11 +5,13 @@
 \alias{shinyPlot}
 \title{Genera un dashboard con shiny}
 \usage{
-shinyPlot(obj)
+shinyPlot(obj, port = 6742)
 }
 \arguments{
 \item{obj}{Objeto de la clase reclamos.}
+
+\item{port}{puerto en el que se ejecuta el servidor web de la aplicación}
 }
 \description{
-Genera un dashboard con shiny
+Levanta un dashboard de shiny, en un servidor web local que permite visualizar las alertas de manera interactiva.
 }

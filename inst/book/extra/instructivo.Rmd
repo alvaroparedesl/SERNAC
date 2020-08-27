@@ -29,7 +29,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Primero descargar R desde <https://cran.r-project.org/bin/windows/base/>; luego instalar RStudio desde <https://download1.rstudio.org/desktop/windows/RStudio-1.3.959.exe>
 
-Una vez comprobado que todo funcione adecuadamanete, descargar los datos desde <http://tecpar.cl/SERNAC/dbf_v05.RData> (peso aprox, 200MB). Descargar también la librería con los códigos <http://tecpar.cl/SERNAC/SERNAC_0.13.1.zip> y el archivo comprimido con datos auxiliares <http://tecpar.cl/SERNAC/aux_data.zip>.
+Una vez comprobado que todo funcione adecuadamanete, descargar los datos desde <http://tecpar.cl/SERNAC/dbf_v05.RData> (peso aprox, 200MB). Descargar también la librería con los códigos <http://tecpar.cl/SERNAC/SERNAC_0.13.2.zip> y el archivo comprimido con datos auxiliares <http://tecpar.cl/SERNAC/aux_data.zip>.
 
 El árbol de mercado también está disponible en: <http://tecpar.cl/SERNAC/arbol_de_mercado.xlsx>
 
@@ -37,7 +37,7 @@ Guardar todo en algún directorio ordenado; al ejecutar RStudio, posicionarse en
 
 ```{r, eval=FALSE}
 setwd("G:/SERNAC") # reemplazar por la ruta propia
-install.packages("SERNAC_0.13.1.zip", repos = NULL, type = "win.binary")
+install.packages("SERNAC_0.13.2.zip", repos = NULL, type = "win.binary")
 install.packages("data.table")
 install.packages("readxl")
 install.packages("shiny")
@@ -237,7 +237,7 @@ A continuación se muestran los scripts completos (lo mismo que se ha ido desglo
 
 ```{r, eval=FALSE}
 setwd("G:/SERNAC") # reemplazar por la ruta propia
-install.packages("SERNAC_0.13.1.zip", repos = NULL, type = "win.binary")
+install.packages("SERNAC_0.13.2.zip", repos = NULL, type = "win.binary")
 install.packages("data.table")
 install.packages("readxl")
 install.packages("shiny")
@@ -571,6 +571,7 @@ outt <- extraer_series(outt)
 outt <- reportar(outt)
 
 shinyPlot(outt)
+# shinyPlot(outt, port=6743)
 ```
 
 

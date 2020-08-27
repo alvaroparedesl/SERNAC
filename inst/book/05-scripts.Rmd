@@ -16,7 +16,7 @@ Este paso es común e independiente a la versión de la base de datos que se ten
 
 ```{r, eval=FALSE}
 setwd("G:/SERNAC") # reemplazar por la ruta propia
-install.packages("SERNAC_0.13.1.zip", repos = NULL, type = "win.binary")
+install.packages("SERNAC_0.13.2.zip", repos = NULL, type = "win.binary")
 install.packages("data.table")
 install.packages("readxl")
 install.packages("shiny")
